@@ -2,6 +2,8 @@
 
 Rental Passport is currently a frontend-only Vite application.
 
+Production deployment of the frontend does not authorize real renter-data collection. Backend verification, permission, audit, RLS, provider, and legal controls must be completed before live sensitive workflows launch.
+
 ## Vercel Project Settings
 
 - Framework Preset: Vite

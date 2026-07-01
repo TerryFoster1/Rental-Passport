@@ -34,6 +34,10 @@ All business logic, workflows, validation, permissions, verification, and data a
 - Business logic must never be tightly coupled to the web interface.
 - Renter data ownership and consent must be central to all workflows.
 - Security and privacy take precedence over convenience.
+- Rental Passport must verify facts, not judge people.
+- No Applicant Score, Tenant Score, approval recommendation, or desirability ranking may exist.
+- Passport Completeness is allowed because it measures supplied and independently verified information for a passport version.
+- Regional compliance must shape application questions, filters, leases, and landlord views.
 - Every major capability should be modular enough to become independently deployable in the future.
 - Architecture decisions must support millions of users and thousands of third-party integrations without requiring major redesign.
 
@@ -44,7 +48,12 @@ The frontend MVP is a production-facing prototype. It demonstrates the renter an
 ## Core Architecture Documents
 
 - `docs/product/product-bible.md` defines the product north star.
-- `docs/architecture/verification-engine.md` defines the verification system and passport confidence model.
+- `docs/architecture/verification-engine.md` defines the verification system, Passport Completeness, and section verification states.
+- `docs/architecture/manual-first-mvp.md` defines the MVP approach for manual and semi-manual verification before paid automation.
 - `docs/security/privacy-model.md` defines document privacy and permissions boundaries.
 - `docs/security/fraud-detection.md` defines fraud signals and mitigation strategy.
+- `docs/security/secure-sharing-model.md` defines recipient-specific secure sharing and landlord access.
+- `docs/architecture/regional-compliance.md` defines jurisdiction-aware questions, filters, applications, and leases.
+- `docs/features/user-flows.md` defines tenant, landlord, verification, regional application, and lease flows.
 - `docs/api/api-design.md` defines the future API-first integration surface.
+- `docs/api/developer-portal.md` defines future partner portal documentation.

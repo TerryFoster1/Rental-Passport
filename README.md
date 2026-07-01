@@ -1,14 +1,42 @@
-﻿# Rental Passport
+# Rental Passport
 
 Rental Passport is the trusted digital identity for renting: one secure, verified rental profile renters control and can reuse across rental applications.
 
-This repository is intentionally structure-only at this stage. It contains the development architecture, configuration, documentation placeholders, and folder conventions needed to grow into a production-grade SaaS platform.
+## Core Product Statement
+
+Rental Passport verifies information.
+
+Rental Passport protects renter privacy.
+
+Rental Passport ensures legal compliance.
+
+Rental Passport standardizes rental applications.
+
+Rental Passport reduces fraud.
+
+Rental Passport does not make rental decisions.
+
+Rental Passport does not rank people.
+
+Rental Passport gives landlords trusted facts so they can make informed decisions.
 
 ## Product Direction
 
-Rental Passport is an API-first identity platform for the rental industry. The React web application is only the first client. Backend services must own business logic, workflows, validation, permissions, verification, data access, and integration contracts.
+Rental Passport is an API-first verification platform for the rental industry. The React web application is only the first client. Backend services must own business logic, workflows, validation, permissions, verification, compliance decisions, data access, and integration contracts.
 
 The long-term goal is to support "Apply with RentalPassport.io" across listing websites, brokerages, landlords, property management systems, and third-party rental platforms.
+
+## Current Product Language
+
+- Use Passport Completeness, not Applicant Score or Tenant Score.
+- Use section verification status for Identity, Employment, Income, Rental History, References, Credit Report, and Documents.
+- Use verification confidence only to describe authenticity and evidence quality.
+- Use Document Integrity Assessment for AI fraud outputs.
+- Use manual-first verification for MVP before paid automation.
+- Use secure recipient-specific sharing, not public passport links.
+- Present income facts and income multiples, not approval recommendations.
+- Keep documents private by default.
+- Make filtering jurisdiction-aware.
 
 ## Stack
 
@@ -20,12 +48,21 @@ The long-term goal is to support "Apply with RentalPassport.io" across listing w
 
 ## Current Scope
 
-No product features, UI screens, database tables, API handlers, or business logic have been implemented yet.
+The repository contains a frontend MVP, production-readiness assets, and architecture documentation. Real backend verification, database schema, APIs, provider integrations, authentication, uploads, escrow, and digital lease workflows are not implemented yet.
 
 ## Foundational Docs
 
 - Product Bible: `docs/product/product-bible.md`
 - Architecture Overview: `docs/architecture/architecture-overview.md`
+- Verification Engine: `docs/architecture/verification-engine.md`
+- Manual-First MVP: `docs/architecture/manual-first-mvp.md`
+- Regional Compliance: `docs/architecture/regional-compliance.md`
+- User Flows: `docs/features/user-flows.md`
 - API Design: `docs/api/api-design.md`
+- Developer Portal: `docs/api/developer-portal.md`
 - Database Design: `docs/database/database-design.md`
+- Permissions Model: `docs/security/permissions-model.md`
+- Privacy Model: `docs/security/privacy-model.md`
+- Secure Sharing Model: `docs/security/secure-sharing-model.md`
+- Fraud Detection: `docs/security/fraud-detection.md`
 - Security Checklist: `docs/security/security-checklist.md`

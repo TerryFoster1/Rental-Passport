@@ -33,6 +33,10 @@ This document tracks production-facing polish for the current frontend MVP. It d
 - Real success states from persisted workflows
 - Cookie consent banner for non-essential analytics or advertising
 - Provider-backed verification status
+- Manual reviewer workflows
+- Secure sharing, intended recipient, and magic-link access
+- Landlord Applications dashboard
+- Authenticated, view-only, time-limited supporting document viewer
 - Audit log UI sourced from backend events
 - Error states sourced from API failures
 
@@ -44,8 +48,15 @@ The MVP does not require a cookie banner while it avoids non-essential analytics
 
 - Legal review of Privacy Policy and Terms of Service
 - PIPEDA and GDPR privacy assessment
+- CASL review for email invitations and verification outreach
+- Credit authorization review
+- Employment and reference consent review
+- Identity document handling review
+- Deletion and data export request process
 - Data retention policy
+- Jurisdiction-specific screening and filter review
 - Security review of storage and access controls
 - RLS policy review
 - Provider contracts for identity, credit, employment, and fraud checks
 - Incident response and audit logging plan
+- Confirmation that no tenant/applicant scoring exists in product, API, or data model

@@ -1,18 +1,19 @@
 # Privacy Model
 
-Rental Passport is privacy-first. Documents stay inside Rental Passport. Landlords receive verified information, confidence, evidence summaries, and application packages, not raw files.
+Rental Passport is privacy-first. Documents stay inside Rental Passport. Landlords receive verified information, evidence summaries, completeness, and application packages, not raw files.
 
 ## Default Sharing Model
 
 By default, landlord access includes:
 
-- Verification status
+- Passport Completeness
+- Section verification status
 - Verification summary
-- Confidence level
 - Evidence summary
-- Passport freshness
+- Verification freshness
 - Application package
 - Viewable applicant profile
+- Relevant activity history
 
 By default, landlord access excludes:
 
@@ -46,6 +47,10 @@ Permissions should support:
 - Role-based access
 - Least privilege
 - Consent receipts
+
+## Compliance Controls
+
+The privacy model must adapt to jurisdiction and suppress illegal questions, filters, and landlord-facing fields where prohibited.
 
 ## Security Expectations
 

@@ -15,6 +15,9 @@ Rental Passport authentication must support renters, landlords, future partners,
 - Renter consent must govern data access, not mere account possession.
 - Future public integration flows should support "Apply with RentalPassport.io" without exposing unnecessary renter data.
 - Account recovery, MFA, session management, and device trust should be designed before sensitive workflows go live.
+- Authentication must not imply landlord access to raw documents.
+- Authentication events should feed Passport Activity History where relevant.
+- Partner authentication must preserve jurisdiction-aware permissions and filters.
 
 ## Current Scope
 
