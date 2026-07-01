@@ -55,13 +55,21 @@ The repository contains a frontend MVP, production-readiness assets, and archite
 - Product Bible: `docs/product/product-bible.md`
 - Architecture Overview: `docs/architecture/architecture-overview.md`
 - Verification Engine: `docs/architecture/verification-engine.md`
+- Trust Framework: `docs/verification/trust-framework.md`
+- Verification Operations: `docs/verification/verification-operations.md`
 - Manual-First MVP: `docs/architecture/manual-first-mvp.md`
+- MVP Implementation Plan: `docs/architecture/mvp-implementation-plan.md`
+- Internal Reviewer Portal: `docs/architecture/internal-reviewer-portal.md`
 - Regional Compliance: `docs/architecture/regional-compliance.md`
 - User Flows: `docs/features/user-flows.md`
 - API Design: `docs/api/api-design.md`
+- Partner Integration Strategy: `docs/api/partner-integration-strategy.md`
 - Developer Portal: `docs/api/developer-portal.md`
 - Database Design: `docs/database/database-design.md`
 - Permissions Model: `docs/security/permissions-model.md`
+- Permissions Matrix: `docs/security/permissions-matrix.md`
+- Security Architecture: `docs/security/security-architecture.md`
+- Compliance Blueprint: `docs/security/compliance-blueprint.md`
 - Privacy Model: `docs/security/privacy-model.md`
 - Secure Sharing Model: `docs/security/secure-sharing-model.md`
 - Fraud Detection: `docs/security/fraud-detection.md`

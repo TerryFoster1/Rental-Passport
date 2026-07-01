@@ -1,80 +1,171 @@
-# API Design
+# API Blueprint
 
 Rental Passport is API-first. The API is the product platform; the web client is one consumer.
 
-## Design Goals
-
-- Expose secure, versioned contracts for first-party and future third-party clients.
-- Keep business logic, workflow rules, validation, permissions, verification, compliance decisions, and data access behind backend APIs.
-- Make future integrations possible for listing websites, brokerages, landlords, property management systems, screening providers, OpenRoom, and enterprise customers.
-- Support the long-term "Apply with RentalPassport.io" integration model.
-- Avoid any API that ranks people, recommends approval, or exposes raw documents by default.
-
-## Future API Families
-
-No API routes are implemented yet. Future API families may include:
-
-- Passport profile APIs
-- Passport Completeness APIs
-- Section verification status APIs
-- Verification evidence APIs
-- Consent and sharing APIs
-- Secure invitation APIs
-- Landlord Applications dashboard APIs
-- Landlord review APIs
-- Legal sorting and filtering APIs
-- Regional compliance APIs
-- Regional application generation APIs
-- Digital lease library APIs
-- Deposit escrow APIs, legal review required
-- Document upload APIs
-- Document Integrity Assessment APIs
-- OAuth 2.0 / OpenID Connect APIs
-- Webhook delivery APIs
-- Integration management APIs
-- Audit and activity APIs
-
-## Contract Principles
+## API Principles
 
 - Version public APIs from the beginning.
-- Separate public APIs from internal service APIs.
-- Use explicit permission and consent checks for all renter data access.
-- Return standardized errors.
-- Design idempotency for mutating workflows that may be retried.
-- Treat auditability as part of the API contract.
-- Avoid leaking storage paths, internal IDs, or provider-specific implementation details.
-- Return verification facts and evidence summaries, not approval recommendations.
+- Separate public, internal, reviewer, admin, and partner APIs.
+- Keep business logic, permissions, verification, and compliance behind APIs.
+- Return facts and evidence summaries, not approval recommendations.
+- Never expose raw documents by default.
+- Enforce jurisdiction-aware filters and questions.
 
-## Sorting and Filtering Rules
+## Versioning
 
-Default applicant sorting must be:
+Initial version namespace: `/v1`.
 
-1. Passport Completeness
-2. Fully Verified Passports
-3. Date Applied
+Future breaking changes require a new version namespace. Internal APIs may version independently but must not leak unstable contracts to partners.
 
-Allowed optional sorting includes newest, oldest, recently updated, verification status, and application date.
+## Authentication APIs
 
-Filtering is allowed only when legal for the jurisdiction. Filtering APIs must accept jurisdiction context and suppress illegal criteria automatically.
+- `POST /v1/auth/sign-up`
+- `POST /v1/auth/sign-in`
+- `POST /v1/auth/magic-link`
+- `POST /v1/auth/password-reset`
+- `POST /v1/auth/logout`
+- `GET /v1/auth/session`
+- `POST /v1/auth/landlord/secure-access`
 
-## Income Presentation
+## Passport APIs
 
-Income APIs should present:
+- `GET /v1/passports/current`
+- `POST /v1/passports`
+- `GET /v1/passports/{passportId}`
+- `GET /v1/passports/{passportId}/versions`
+- `GET /v1/passports/{passportId}/versions/{versionId}`
+- `GET /v1/passports/{passportId}/completeness`
+- `GET /v1/passports/{passportId}/sections`
+- `PATCH /v1/passports/{passportId}/sections/{sectionType}`
+- `GET /v1/passports/{passportId}/activity`
 
-- Verified Monthly Income
-- Verified Annual Income
-- Income Verification Method
-- Income Multiple relative to advertised rent
+## Verification APIs
 
-The API must not return approval recommendations.
+- `POST /v1/verifications/{sectionType}/request`
+- `GET /v1/verifications/{verificationId}`
+- `GET /v1/passports/{passportId}/verification-summary`
+- `GET /v1/passports/{passportId}/verification-certificate`
+- `POST /v1/verifications/{verificationId}/request-more-information`
+- `POST /v1/verifications/{verificationId}/reverify`
 
-## Client Rule
+## Document APIs
 
-The React frontend must call backend APIs rather than owning business workflows directly. Any action that would also be needed by a future mobile app, SDK, browser extension, or third-party platform belongs behind an API boundary.
+- `POST /v1/documents/upload-intent`
+- `POST /v1/documents/{documentId}/complete-upload`
+- `GET /v1/documents/{documentId}/metadata`
+- `POST /v1/documents/{documentId}/viewer-grants`
+- `POST /v1/documents/{documentId}/revoke-viewer-grant`
+- `GET /v1/document-viewer/{grantId}`
 
-## Developer Portal
+## Sharing APIs
 
-Future partner documentation belongs in a hidden developer/API portal. See `docs/api/developer-portal.md`.
+- `POST /v1/passports/{passportId}/shares`
+- `GET /v1/passports/{passportId}/shares`
+- `POST /v1/shares/{shareId}/revoke`
+- `GET /v1/shares/{shareToken}/accept`
+- `GET /v1/shares/{shareId}/access-logs`
+
+## Application APIs
+
+- `POST /v1/applications`
+- `GET /v1/applications/{applicationId}`
+- `PATCH /v1/applications/{applicationId}/withdraw`
+- `PATCH /v1/applications/{applicationId}/accept`
+- `PATCH /v1/applications/{applicationId}/archive`
+- `GET /v1/applications/{applicationId}/package`
+
+## Landlord Dashboard APIs
+
+- `GET /v1/landlord/applications`
+- `GET /v1/landlord/applications/{applicationId}/passport-summary`
+- `GET /v1/landlord/applications/{applicationId}/verification-details`
+- `POST /v1/landlord/applications/{applicationId}/save`
+- `POST /v1/landlord/applications/{applicationId}/message`
+
+## Notifications APIs
+
+- `POST /v1/notifications/email`
+- `GET /v1/notifications/preferences`
+- `PATCH /v1/notifications/preferences`
+
+## Internal Reviewer APIs
+
+- `GET /internal/v1/reviewer/queues`
+- `GET /internal/v1/reviewer/cases`
+- `POST /internal/v1/reviewer/cases/{caseId}/assign`
+- `GET /internal/v1/reviewer/cases/{caseId}`
+- `POST /internal/v1/reviewer/cases/{caseId}/notes`
+- `POST /internal/v1/reviewer/cases/{caseId}/decision`
+- `POST /internal/v1/reviewer/cases/{caseId}/escalate`
+- `POST /internal/v1/reviewer/cases/{caseId}/request-more-information`
+
+## Administration APIs
+
+- `GET /admin/v1/users`
+- `GET /admin/v1/audit-logs`
+- `GET /admin/v1/compliance-rules`
+- `PATCH /admin/v1/compliance-rules/{ruleId}`
+- `GET /admin/v1/integrations`
+- `PATCH /admin/v1/integrations/{clientId}`
+
+## Partner APIs
+
+- `GET /partner/v1/passports/{passportId}/verification-status`
+- `GET /partner/v1/applications/{applicationId}`
+- `POST /partner/v1/applications/{applicationId}/accepted`
+- `POST /partner/v1/applications/{applicationId}/withdrawn`
+- `POST /partner/v1/lease-handoff`
+
+## OAuth
+
+Future OAuth scopes:
+
+- `passport.read`
+- `passport.verification.read`
+- `application.read`
+- `application.write`
+- `webhook.manage`
+- `lease.handoff`
+
+## Webhooks
+
+Future events:
+
+- `passport.shared`
+- `passport.viewed`
+- `verification.completed`
+- `verification.expired`
+- `application.accepted`
+- `application.withdrawn`
+- `lease.executed`
+
+Webhooks require signing, replay protection, retries, and delivery logs.
+
+## SDKs
+
+Initial SDK target: JavaScript. Future SDKs may include mobile and server-side languages.
+
+## Error Handling
+
+Use structured errors:
+
+- `code`
+- `message`
+- `details`
+- `request_id`
+- `documentation_url`
+
+Common codes: unauthorized, forbidden, expired_share, revoked_share, jurisdiction_not_supported, verification_required, validation_failed, rate_limited.
+
+## Rate Limits
+
+Rate limits should vary by actor:
+
+- Guest and magic link flows: strict
+- Tenant app: moderate
+- Landlord dashboard: moderate
+- Internal reviewer APIs: protected by role and session policy
+- Partner APIs: contract-based
 
 ## Current Scope
 

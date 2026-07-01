@@ -2,6 +2,8 @@
 
 Rental Passport permissions are rooted in renter ownership and explicit consent.
 
+The detailed role-by-role implementation boundary is defined in `docs/security/permissions-matrix.md`.
+
 ## Principles
 
 - The renter owns their data.

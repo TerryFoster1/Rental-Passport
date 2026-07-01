@@ -2,6 +2,8 @@
 
 Rental Passport should eventually provide a hidden developer/API portal for partners integrating the trusted rental identity layer.
 
+The broader integration model is defined in `docs/api/partner-integration-strategy.md`.
+
 ## Audiences
 
 - Listing websites

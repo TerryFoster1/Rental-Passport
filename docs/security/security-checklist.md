@@ -1,5 +1,7 @@
 # Security Checklist
 
+The implementation security model is defined in `docs/security/security-architecture.md`, `docs/security/permissions-matrix.md`, and `docs/security/compliance-blueprint.md`.
+
 ## Platform Security Themes
 
 - Renter data ownership and explicit consent

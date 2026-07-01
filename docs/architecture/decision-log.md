@@ -15,3 +15,4 @@
 | 2026-07-01 | Secure sharing is recipient-specific | Rental Passports must not be public links; secure sharing requires intended recipient, expiry, revocation, access logging, and authentication or magic link access. | Accepted |
 | 2026-07-01 | Main passport is a trusted summary | The landlord-facing passport cover page should be minimal and readable in about 15 seconds, with detailed evidence behind clickable sections. | Accepted |
 | 2026-07-01 | Landlord access is security language | Landlord onboarding should use protective language such as Create Secure Access rather than generic sign-up language. | Accepted |
+| 2026-07-01 | Implementation begins from blueprints | Production implementation should start from the Trust Framework, Verification Operations Manual, Database Blueprint, API Blueprint, Security Architecture, Permissions Matrix, Compliance Blueprint, Partner Integration Strategy, Internal Reviewer Portal, and MVP Implementation Plan. | Accepted |
