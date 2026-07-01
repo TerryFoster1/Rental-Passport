@@ -9,10 +9,12 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ClipboardCheck,
   Clock,
   Copy,
   CreditCard,
   ExternalLink,
+  FileLock2,
   FileText,
   Gauge,
   HelpCircle,
@@ -33,6 +35,7 @@ import {
 } from 'lucide-react';
 
 type View =
+  | 'landing'
   | 'tenant-dashboard'
   | 'tenant-rental'
   | 'tenant-employment'
@@ -245,12 +248,13 @@ const requirements: Record<SectionKey, Requirement[]> = {
 type Requirement = [string, string, string, LucideIcon, boolean];
 
 export default function App() {
-  const [view, setView] = useState<View>('tenant-dashboard');
+  const [view, setView] = useState<View>('landing');
   const isLandlord = view.startsWith('landlord');
 
   return (
     <div className="min-h-screen bg-[#f8fbff] text-navy">
-      <Header isLandlord={isLandlord} go={setView} />
+      <Header isLandlord={isLandlord} isLanding={view === 'landing'} go={setView} />
+      {view === 'landing' && <LandingPage go={setView} />}
       {view === 'tenant-dashboard' && <TenantDashboard go={setView} />}
       {view === 'tenant-rental' && <TenantSection page="rental" go={setView} />}
       {view === 'tenant-employment' && <TenantSection page="employment" go={setView} />}
@@ -269,11 +273,11 @@ export default function App() {
   );
 }
 
-function Header({ isLandlord, go }: { isLandlord: boolean; go: (view: View) => void }) {
+function Header({ isLandlord, isLanding, go }: { isLandlord: boolean; isLanding: boolean; go: (view: View) => void }) {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-        <button className="flex items-center gap-3 text-left" onClick={() => go('tenant-dashboard')}>
+        <button className="flex items-center gap-3 text-left" onClick={() => go('landing')}>
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-soft">
             <Home className="h-6 w-6" />
           </span>
@@ -289,7 +293,13 @@ function Header({ isLandlord, go }: { isLandlord: boolean; go: (view: View) => v
             <ShieldCheck className="h-5 w-5 text-emerald-600" />
             {isLandlord ? 'Secure. Private. Trusted.' : 'Your data is secure and encrypted'}
           </span>
-          {isLandlord ? (
+          {isLanding ? (
+            <>
+              <a href="#how-it-works" className="font-bold text-slate-700 hover:text-blue-700">How it works</a>
+              <Button onClick={() => go('landlord-summary')}>Landlord Preview</Button>
+              <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')}>Create Passport</Button>
+            </>
+          ) : isLandlord ? (
             <>
               <Button icon={Mail}>Message Applicant</Button>
               <Button icon={Bookmark}>Save Applicant</Button>
@@ -306,6 +316,150 @@ function Header({ isLandlord, go }: { isLandlord: boolean; go: (view: View) => v
         </div>
       </div>
     </header>
+  );
+}
+
+function LandingPage({ go }: { go: (view: View) => void }) {
+  const features = [
+    'One Rental Profile',
+    'Verified Employment',
+    'Verified Income',
+    'Verified Rental History',
+    'Verified References',
+    'Verified Identity',
+    'Verified Credit',
+    'Secure Share Links',
+    'Expiring Access',
+    'Tracked Views',
+    'Digital Lease Signing',
+    'Auto-Filled Rental Applications',
+    'Application Package',
+  ];
+
+  return (
+    <main>
+      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1fr_440px] lg:px-8 lg:py-24">
+        <div>
+          <Badge tone="blue">Trusted rental identity</Badge>
+          <h1 className="mt-6 max-w-3xl text-5xl font-black tracking-tight md:text-7xl">
+            Apply Anywhere.
+            <span className="block text-blue-700">Fill Out One Application.</span>
+          </h1>
+          <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-700">
+            Stop filling out lengthy rental applications over and over. Build one verified Rental Passport that you can securely share with landlords anywhere. No more emailing sensitive documents.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')}>Create Your Free Passport</Button>
+            <a href="#how-it-works" className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-3 font-black text-navy transition hover:border-blue-300 hover:bg-blue-50">
+              See How It Works
+            </a>
+          </div>
+        </div>
+        <Card className="self-center p-6 shadow-soft">
+          <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 p-6">
+            <div className="flex items-center justify-between">
+              <Avatar />
+              <VerifiedBadge label="Version verified" />
+            </div>
+            <h2 className="mt-6 text-3xl font-black">Kathryn's Rental Passport</h2>
+            <p className="mt-2 text-slate-700">Verified summaries for landlords. Private documents stay protected.</p>
+            <div className="mt-6 space-y-3">
+              {['Identity verified', 'Income verified', 'Rental history verified', 'Credit summary verified'].map((item) => (
+                <div key={item} className="flex items-center justify-between rounded-xl bg-white p-3">
+                  <span className="font-semibold">{item}</span>
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      </section>
+
+      <section className="mx-auto grid max-w-7xl gap-5 px-5 py-8 lg:grid-cols-3 lg:px-8">
+        <PainCard icon={ClipboardCheck} title="Stop Repeating Yourself" text="Fill out your rental information once instead of completing the same forms for every property." />
+        <PainCard icon={FileLock2} title="Keep Your Documents Private" text="Your ID, pay stubs, bank statements and credit report stay inside Rental Passport. Landlords see verified information, not copies." />
+        <PainCard icon={ShieldCheck} title="Get Approved Faster" text="Verified identity, employment, income, credit, and rental history help you stand out before the landlord even calls." />
+      </section>
+
+      <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
+        <div className="mb-8 max-w-2xl">
+          <h2 className="text-4xl font-black tracking-tight">How It Works</h2>
+          <p className="mt-3 text-lg text-slate-700">Build it once, verify it once, and share a secure version whenever you apply.</p>
+        </div>
+        <div className="grid gap-5 lg:grid-cols-3">
+          <StepCard step="1" title="Build Your Passport" text="Complete your rental profile once." />
+          <StepCard step="2" title="Get Verified" text="Rental Passport independently verifies your information." />
+          <StepCard step="3" title="Apply Anywhere" text="Share a secure Rental Passport instead of filling out applications over and over." />
+        </div>
+      </section>
+
+      <section className="bg-white py-16">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[1fr_420px] lg:px-8">
+          <div>
+            <h2 className="text-4xl font-black tracking-tight">Your Information Stays Yours.</h2>
+            <p className="mt-4 text-lg leading-8 text-slate-700">
+              Unlike emailing PDFs to multiple landlords, Rental Passport keeps your sensitive documents secure. Landlords receive verification results, not copies of your personal documents, unless you explicitly choose to share more in a future version.
+            </p>
+          </div>
+          <Card className="border-blue-200 bg-blue-50 p-6">
+            <IconBubble icon={Lock} tone="blue" />
+            <h3 className="mt-5 text-2xl font-black">Document verification, not document sharing.</h3>
+            <CheckList items={['Government ID stays private', 'Credit report stays private', 'Pay stubs and bank statements stay private', 'Landlords see verified summaries']} />
+          </Card>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
+        <h2 className="text-4xl font-black tracking-tight">Everything a rental application needs.</h2>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {features.map((feature) => (
+            <div key={feature} className="rounded-2xl border border-slate-200 bg-white p-4 font-bold shadow-sm">
+              <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-600" />
+              {feature}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto grid max-w-7xl gap-6 px-5 pb-16 lg:grid-cols-2 lg:px-8">
+        <Card className="p-7">
+          <h2 className="text-3xl font-black">For landlords</h2>
+          <p className="mt-3 text-lg text-slate-700">Review verified applications faster, reduce fraud, receive standardized applications, sign leases digitally, and spend less time screening.</p>
+          <CheckList items={['Verified summaries instead of raw document folders', 'Printable Application Package', 'Low-risk signals at a glance', 'Regional lease and application workflows']} />
+        </Card>
+        <Card className="p-7">
+          <h2 className="text-3xl font-black">From application to lease</h2>
+          <p className="mt-3 text-lg text-slate-700">Rental Passport owns the pre-tenancy workflow: verification, application, approval, regional lease generation, auto-fill, digital signatures, and secure lease storage.</p>
+          <p className="mt-5 rounded-xl bg-slate-50 p-4 font-semibold">After approval, property management can continue in Rental District, powered by Rental Passport.</p>
+        </Card>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-5 pb-20 text-center lg:px-8">
+        <h2 className="text-4xl font-black tracking-tight">Ready to stop filling out rental applications?</h2>
+        <p className="mt-4 text-xl text-slate-700">Create your Rental Passport today. Build it once. Apply everywhere.</p>
+        <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')} className="mt-8">Create Your Free Passport</Button>
+      </section>
+    </main>
+  );
+}
+
+function PainCard({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
+  return (
+    <Card className="p-7">
+      <IconBubble icon={Icon} tone="blue" />
+      <h2 className="mt-5 text-2xl font-black">{title}</h2>
+      <p className="mt-3 text-slate-700">{text}</p>
+    </Card>
+  );
+}
+
+function StepCard({ step, title, text }: { step: string; title: string; text: string }) {
+  return (
+    <Card className="p-7">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 font-black text-white">{step}</div>
+      <h3 className="mt-5 text-2xl font-black">{title}</h3>
+      <p className="mt-3 text-slate-700">{text}</p>
+    </Card>
   );
 }
 
@@ -388,6 +542,7 @@ function TenantSection({ page, go }: { page: SectionKey; go: (view: View) => voi
             <RequirementCard key={title} title={title} tag={tag} text={text} icon={icon} upload={upload} />
           ))}
         </div>
+        <VerificationEvidence page={page} />
         {page === 'credit' && <AcceptedSources />}
         <div className="mt-7 flex items-center justify-between gap-4">
           <Button icon={ArrowLeft} onClick={() => go('tenant-dashboard')}>Back</Button>
@@ -440,7 +595,7 @@ function ReviewShare({ go }: { go: (view: View) => void }) {
               <Badge tone="blue">Auto-generated</Badge>
             </div>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {['Rental Passport', 'Employment Summary', 'Reference Summary', 'Credit Summary', 'Identity Summary', 'Rental History Summary', 'Verification Summary', 'Traditional Rental Application'].map((item) => (
+              {['Completed Rental Application', 'Verification Summary', 'Employment Summary', 'Rental History Summary', 'Reference Summary', 'Credit Summary', 'Identity Summary', 'Rental Passport'].map((item) => (
                 <div key={item} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-slate-700">
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   <span>{item}</span>
@@ -467,9 +622,10 @@ function ReviewShare({ go }: { go: (view: View) => void }) {
           <Card className="p-6">
             <h3 className="text-xl font-black">Downloads</h3>
             <div className="mt-4 space-y-3">
-              <Button icon={FileText} className="w-full">Individual Reports</Button>
+              <Button icon={FileText} className="w-full">Verification Summaries</Button>
               <Button primary icon={FileText} className="w-full">Complete Application Package</Button>
             </div>
+            <p className="mt-3 text-sm text-slate-600">Raw documents stay private unless explicitly shared in a future version.</p>
           </Card>
           <Button primary icon={ExternalLink} onClick={() => go('tenant-preview')} className="w-full">Preview Passport</Button>
           <Button icon={Send} onClick={() => go('landlord-summary')} className="w-full">Open Landlord View</Button>
@@ -535,11 +691,15 @@ function LandlordSummary({ go, preview = false }: { go: (view: View) => void; pr
             <h2 className="text-xl font-black">Applicant Actions</h2>
             <div className="mt-4 space-y-3">
               <Button primary icon={FileText} className="w-full">Download Application Package</Button>
-              <Button icon={FileText} className="w-full">Download Individual Reports</Button>
+              <Button icon={FileText} className="w-full">Download Verification Summary</Button>
               <Button icon={Mail} className="w-full">Message Applicant</Button>
               <Button icon={Bookmark} className="w-full">Save Applicant</Button>
               <Button primary icon={CheckCircle2} className="w-full">Accept Applicant</Button>
             </div>
+          </Card>
+          <Card className="p-6">
+            <h2 className="text-xl font-black">Document Privacy</h2>
+            <p className="mt-3 text-slate-700">Landlords receive verified summaries, not raw documents. ID, credit reports, pay stubs, bank statements, employment letters, leases, and supporting documents stay inside Rental Passport.</p>
           </Card>
         </aside>
       </div>
@@ -703,8 +863,8 @@ function CreditDetail({ go }: { go: (view: View) => void }) {
           </div>
           </div>
           <div className="hidden gap-3 xl:flex">
-            <Button icon={ExternalLink}>View Official Report</Button>
-            <Button primary icon={FileText}>Download Report</Button>
+            <Button icon={ExternalLink}>View Summary</Button>
+            <Button primary icon={FileText}>Download Summary</Button>
           </div>
         </div>
         <Notice title="Credit Report Verified" text="This report has been verified using data from Equifax and TransUnion." />
@@ -738,11 +898,11 @@ function CreditDetail({ go }: { go: (view: View) => void }) {
           <CheckList items={['Verified directly through provider', 'Credit report supplied directly from Equifax and TransUnion', 'Report not modified', 'Verified by Rental Passport', 'Current as of May 29, 2025']} />
         </Card>
         <Card className="mt-5 p-6">
-          <h2 className="text-xl font-black">Official Credit Reports</h2>
-          <p className="mt-2 text-slate-700">View the full reports provided by Equifax and TransUnion.</p>
+          <h2 className="text-xl font-black">Verified Credit Summary</h2>
+          <p className="mt-2 text-slate-700">Rental Passport verifies credit data through providers and shares a landlord-safe summary. The full credit report remains private unless the tenant explicitly grants additional access in a future version.</p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Button icon={ExternalLink}>View Equifax Report</Button>
-            <Button icon={ExternalLink}>View TransUnion Report</Button>
+            <Button icon={ExternalLink}>View Credit Summary</Button>
+            <Button icon={FileText}>Download Credit Summary</Button>
           </div>
         </Card>
       </section>
@@ -832,6 +992,29 @@ function RequirementCard({ title, tag, text, icon: Icon, upload }: { title: stri
         <p className="text-slate-700">{text}</p>
       </div>
       {upload ? <UploadBox /> : <Button>{title.includes('Direct') || title.includes('Allow') ? 'Start Verification' : 'Add Details'}</Button>}
+    </Card>
+  );
+}
+
+function VerificationEvidence({ page }: { page: SectionKey }) {
+  const evidence: Record<SectionKey, string[]> = {
+    rental: ['Previous landlord contacted', 'Lease or equivalent record reviewed when available', 'Payment history reviewed', 'No lease violations reported'],
+    employment: ['Employer contacted directly', 'Employment letter reviewed', 'Pay stub reviewed', 'Bank deposits matched'],
+    references: ['Reference contacted directly', 'Relationship confirmed', 'Consent to contact recorded', 'Positive response summarized'],
+    credit: ['Credit report supplied directly from provider', 'Report not modified', 'Verified by Rental Passport', 'Current as of May 29, 2025'],
+    identity: ['Government ID verified', 'Facial verification passed', 'Email verified', 'Phone verified'],
+  };
+
+  return (
+    <Card className="mt-5 border-emerald-200 bg-emerald-50 p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-black">How verification is completed</h3>
+          <p className="mt-2 text-slate-700">Rental Passport verifies information and shares the result. Source documents stay private.</p>
+        </div>
+        <Badge tone="green">Private by default</Badge>
+      </div>
+      <CheckList items={evidence[page]} />
     </Card>
   );
 }
@@ -953,13 +1136,14 @@ function Timeline() {
 function Documents() {
   return (
     <Card className="mt-6 p-6">
-      <h2 className="text-xl font-black">Supporting Documents</h2>
+      <h2 className="text-xl font-black">Private Source Records</h2>
+      <p className="mt-2 text-slate-700">These records were used for verification but are not automatically downloadable by landlords.</p>
       <div className="mt-4 grid gap-4 md:grid-cols-4">
-        {['Lease Agreement', 'Payment History', 'Pay Stub', 'Employment Letter'].map((doc) => (
+        {['Lease reviewed', 'Payment history reviewed', 'Pay stub reviewed', 'Employment letter reviewed'].map((doc) => (
           <div key={doc} className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="flex h-28 items-center justify-center rounded-lg bg-slate-50 text-slate-400"><FileText className="h-10 w-10" /></div>
+            <div className="flex h-28 items-center justify-center rounded-lg bg-slate-50 text-slate-400"><FileLock2 className="h-10 w-10" /></div>
             <strong className="mt-3 block">{doc}</strong>
-            <span className="text-sm text-slate-600">PDF</span>
+            <span className="text-sm text-slate-600">Stored privately</span>
           </div>
         ))}
       </div>
@@ -991,7 +1175,7 @@ function Notice({ title, text }: { title: string; text: string }) {
 }
 
 function TrustBanner({ className = '' }: { className?: string }) {
-  return <div className={`rounded-xl border border-blue-200 bg-blue-50 p-5 ${className}`}><div className="flex items-center gap-4"><IconBubble icon={Lock} tone="blue" /><div><strong className="block text-lg">Secure. Private. Trusted.</strong><p className="text-slate-700">All data is encrypted and verified using trusted third-party sources. Information is shared securely and never stored by landlords.</p></div></div></div>;
+  return <div className={`rounded-xl border border-blue-200 bg-blue-50 p-5 ${className}`}><div className="flex items-center gap-4"><IconBubble icon={Lock} tone="blue" /><div><strong className="block text-lg">Secure. Private. Verified.</strong><p className="text-slate-700">Documents stay inside Rental Passport. Landlords receive verified summaries and trust signals, not automatic access to raw files.</p></div></div></div>;
 }
 
 function Rows({ rows }: { rows: { label: string; value: string }[] }) {
