@@ -50,10 +50,10 @@ Cloudflare should be DNS only for initial verification. Disable the proxy until 
 
 | Type | Name | Value | Proxy Status |
 | --- | --- | --- | --- |
-| A | `@` | `216.198.79.193` | DNS only |
-| CNAME | `www` | Copy the unique CNAME value shown by Vercel for `www.rentalpassport.io` | DNS only |
+| CNAME | `@` | `cname.vercel-dns.com` | DNS only |
+| CNAME | `www` | `89bfa0695b8ecbfd.vercel-dns-016.com` | DNS only |
 
-Vercel may show a project-specific CNAME target similar to `d1d4fc829fe7bc7c.vercel-dns-017.com`. Use the exact value shown in the Vercel Domains screen for this project.
+These values came from `vercel domains verify` for the `rental-passport` project. Vercel also lists fallback A-record options, but the recommended Cloudflare records for this project are the CNAME records above.
 
 Remove any conflicting `A`, `AAAA`, or `CNAME` records for `@` and `www` before adding these.
 
