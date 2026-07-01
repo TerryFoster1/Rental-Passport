@@ -320,33 +320,40 @@ function Header({ isLandlord, isLanding, go }: { isLandlord: boolean; isLanding:
 }
 
 function LandingPage({ go }: { go: (view: View) => void }) {
-  const features = [
-    'One Rental Profile',
-    'Verified Employment',
-    'Verified Income',
-    'Verified Rental History',
-    'Verified References',
-    'Verified Identity',
-    'Verified Credit',
-    'Secure Share Links',
-    'Expiring Access',
-    'Tracked Views',
-    'Digital Lease Signing',
-    'Auto-Filled Rental Applications',
-    'Application Package',
+  const valuePillars = [
+    ['Fill Out Once', 'Complete your rental information one time and reuse it for every application.', ClipboardCheck],
+    ['Protect Your Privacy', 'Your personal documents stay securely inside Rental Passport. Landlords see verified information, not your private files.', FileLock2],
+    ['Get Approved Faster', 'Verified identity, employment, rental history and credit help landlords review your application with confidence.', ShieldCheck],
+  ] as const;
+
+  const frustrations = [
+    ['Filling out the same application over and over.', 'Build one reusable rental profile instead.'],
+    ['Emailing sensitive documents to multiple landlords.', 'Keep documents in your secure passport and share verified results.'],
+    ['Waiting days while landlords verify your information.', 'Send a passport with verification already attached.'],
+    ['Losing track of which documents you have already sent.', 'Control access from one place and see who has viewed your passport.'],
+  ];
+
+  const verificationItems = [
+    'Identity verified',
+    'Employment verified',
+    'Income verified',
+    'Rental history verified',
+    'References verified',
+    'Credit verified',
   ];
 
   return (
     <main>
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1fr_440px] lg:px-8 lg:py-24">
         <div>
-          <Badge tone="blue">Trusted rental identity</Badge>
+          <Badge tone="blue">Your reusable rental identity</Badge>
           <h1 className="mt-6 max-w-3xl text-5xl font-black tracking-tight md:text-7xl">
-            Apply Anywhere.
-            <span className="block text-blue-700">Fill Out One Application.</span>
+            Fill It Out Once.
+            <span className="block text-blue-700">Apply Anywhere.</span>
+            <span className="block">Protect Your Information.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-700">
-            Stop filling out lengthy rental applications over and over. Build one verified Rental Passport that you can securely share with landlords anywhere. No more emailing sensitive documents.
+            Stop filling out lengthy rental applications over and over. Build one secure Rental Passport that stores your verified rental information, protects your sensitive documents, and lets you apply anywhere with confidence.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')}>Create Your Free Passport</Button>
@@ -362,9 +369,9 @@ function LandingPage({ go }: { go: (view: View) => void }) {
               <VerifiedBadge label="Version verified" />
             </div>
             <h2 className="mt-6 text-3xl font-black">Kathryn's Rental Passport</h2>
-            <p className="mt-2 text-slate-700">Verified summaries for landlords. Private documents stay protected.</p>
+            <p className="mt-2 text-slate-700">One application. Verified once. Shared privately when Kathryn chooses.</p>
             <div className="mt-6 space-y-3">
-              {['Identity verified', 'Income verified', 'Rental history verified', 'Credit summary verified'].map((item) => (
+              {['Application ready', 'Documents protected', 'Verification complete', 'Access controlled'].map((item) => (
                 <div key={item} className="flex items-center justify-between rounded-xl bg-white p-3">
                   <span className="font-semibold">{item}</span>
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
@@ -376,43 +383,75 @@ function LandingPage({ go }: { go: (view: View) => void }) {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-5 px-5 py-8 lg:grid-cols-3 lg:px-8">
-        <PainCard icon={ClipboardCheck} title="Stop Repeating Yourself" text="Fill out your rental information once instead of completing the same forms for every property." />
-        <PainCard icon={FileLock2} title="Keep Your Documents Private" text="Your ID, pay stubs, bank statements and credit report stay inside Rental Passport. Landlords see verified information, not copies." />
-        <PainCard icon={ShieldCheck} title="Get Approved Faster" text="Verified identity, employment, income, credit, and rental history help you stand out before the landlord even calls." />
+        {valuePillars.map(([title, text, icon]) => (
+          <PainCard key={title} icon={icon} title={title} text={text} />
+        ))}
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
+        <div className="max-w-3xl">
+          <h2 className="text-4xl font-black tracking-tight">Renting Shouldn't Feel Like Starting Over Every Time.</h2>
+          <p className="mt-4 text-lg leading-8 text-slate-700">
+            Rental Passport turns the most frustrating parts of applying into one reusable, verified profile that you control.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-4 lg:grid-cols-2">
+          {frustrations.map(([problem, solution]) => (
+            <Card key={problem} className="p-6">
+              <div className="flex gap-4">
+                <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                  <CheckCircle2 className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black">{problem}</h3>
+                  <p className="mt-2 text-slate-700">{solution}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
         <div className="mb-8 max-w-2xl">
           <h2 className="text-4xl font-black tracking-tight">How It Works</h2>
-          <p className="mt-3 text-lg text-slate-700">Build it once, verify it once, and share a secure version whenever you apply.</p>
+          <p className="mt-3 text-lg text-slate-700">Complete your passport once, get verified, then apply without starting over.</p>
         </div>
         <div className="grid gap-5 lg:grid-cols-3">
           <StepCard step="1" title="Build Your Passport" text="Complete your rental profile once." />
-          <StepCard step="2" title="Get Verified" text="Rental Passport independently verifies your information." />
-          <StepCard step="3" title="Apply Anywhere" text="Share a secure Rental Passport instead of filling out applications over and over." />
+          <StepCard step="2" title="Get Verified" text="We verify your identity, employment, references, rental history and credit." />
+          <StepCard step="3" title="Apply Anywhere" text="Share one secure Rental Passport instead of filling out applications again and again." />
         </div>
       </section>
 
-      <section className="bg-white py-16">
+      <section className="bg-white py-20">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[1fr_420px] lg:px-8">
           <div>
             <h2 className="text-4xl font-black tracking-tight">Your Information Stays Yours.</h2>
             <p className="mt-4 text-lg leading-8 text-slate-700">
-              Unlike emailing PDFs to multiple landlords, Rental Passport keeps your sensitive documents secure. Landlords receive verification results, not copies of your personal documents, unless you explicitly choose to share more in a future version.
+              Most renters send copies of their driver's licence, pay stubs, credit reports and other sensitive documents to complete strangers during the rental process.
+            </p>
+            <p className="mt-4 text-lg leading-8 text-slate-700">
+              Rental Passport changes that. Your documents remain securely stored inside your passport. Landlords receive independently verified information, not copies of your private documents, unless you choose to share them.
             </p>
           </div>
           <Card className="border-blue-200 bg-blue-50 p-6">
             <IconBubble icon={Lock} tone="blue" />
-            <h3 className="mt-5 text-2xl font-black">Document verification, not document sharing.</h3>
-            <CheckList items={['Government ID stays private', 'Credit report stays private', 'Pay stubs and bank statements stay private', 'Landlords see verified summaries']} />
+            <h3 className="mt-5 text-2xl font-black">Verification instead of document sharing.</h3>
+            <CheckList items={['Secure document vault', 'Encrypted storage', 'Verification instead of document sharing', 'Track who has viewed your passport', 'Revoke access at any time']} />
           </Card>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-        <h2 className="text-4xl font-black tracking-tight">Everything a rental application needs.</h2>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
+        <div className="max-w-3xl">
+          <h2 className="text-4xl font-black tracking-tight">Verified for Landlords. Private for Tenants.</h2>
+          <p className="mt-4 text-lg leading-8 text-slate-700">
+            Rental Passport verifies information instead of simply storing documents. Landlords get the confidence they need, while tenants keep control of the files behind each verification.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {verificationItems.map((feature) => (
             <div key={feature} className="rounded-2xl border border-slate-200 bg-white p-4 font-bold shadow-sm">
               <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-600" />
               {feature}
@@ -423,21 +462,21 @@ function LandingPage({ go }: { go: (view: View) => void }) {
 
       <section className="mx-auto grid max-w-7xl gap-6 px-5 pb-16 lg:grid-cols-2 lg:px-8">
         <Card className="p-7">
-          <h2 className="text-3xl font-black">For landlords</h2>
-          <p className="mt-3 text-lg text-slate-700">Review verified applications faster, reduce fraud, receive standardized applications, sign leases digitally, and spend less time screening.</p>
-          <CheckList items={['Verified summaries instead of raw document folders', 'Printable Application Package', 'Low-risk signals at a glance', 'Regional lease and application workflows']} />
+          <h2 className="text-3xl font-black">A Better Experience for Landlords Too.</h2>
+          <p className="mt-3 text-lg text-slate-700">Receive complete, verified applications. Review applicants faster, reduce fraud, and approve with confidence.</p>
+          <CheckList items={['Complete verified applications', 'Faster applicant review', 'Reduced fraud risk', 'Regional rental applications']} />
         </Card>
         <Card className="p-7">
           <h2 className="text-3xl font-black">From application to lease</h2>
-          <p className="mt-3 text-lg text-slate-700">Rental Passport owns the pre-tenancy workflow: verification, application, approval, regional lease generation, auto-fill, digital signatures, and secure lease storage.</p>
-          <p className="mt-5 rounded-xl bg-slate-50 p-4 font-semibold">After approval, property management can continue in Rental District, powered by Rental Passport.</p>
+          <p className="mt-3 text-lg text-slate-700">Generate regional rental applications, send digital lease agreements, and complete lease signing securely through Rental Passport.</p>
+          <p className="mt-5 rounded-xl bg-slate-50 p-4 font-semibold">Rental Passport helps renters apply and landlords decide before the tenancy begins.</p>
         </Card>
       </section>
 
       <section className="mx-auto max-w-5xl px-5 pb-20 text-center lg:px-8">
-        <h2 className="text-4xl font-black tracking-tight">Ready to stop filling out rental applications?</h2>
-        <p className="mt-4 text-xl text-slate-700">Create your Rental Passport today. Build it once. Apply everywhere.</p>
-        <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')} className="mt-8">Create Your Free Passport</Button>
+        <h2 className="text-4xl font-black tracking-tight">Ready to Stop Filling Out Rental Applications?</h2>
+        <p className="mt-4 text-xl text-slate-700">Build your Rental Passport once. Protect your personal information. Apply anywhere with confidence.</p>
+        <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')} className="mt-8">Create My Free Passport</Button>
       </section>
     </main>
   );
