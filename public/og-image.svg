@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f8fbff"/>
+  <circle cx="1040" cy="80" r="220" fill="#dbeafe"/>
+  <circle cx="120" cy="560" r="180" fill="#dcfce7"/>
+  <rect x="90" y="90" width="1020" height="450" rx="36" fill="#ffffff" stroke="#dbe4f0" stroke-width="3"/>
+  <rect x="140" y="140" width="92" height="92" rx="22" fill="#2563eb"/>
+  <path d="M166 196 186 178l20 18v29h-40v-29Z" fill="#ffffff"/>
+  <circle cx="218" cy="218" r="24" fill="#16a34a"/>
+  <path d="m207 218 8 8 15-18" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="260" y="174" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="800" fill="#07113f">Rental Passport.io</text>
+  <text x="140" y="300" font-family="Inter, Arial, sans-serif" font-size="70" font-weight="900" fill="#07113f">Fill It Out Once.</text>
+  <text x="140" y="382" font-family="Inter, Arial, sans-serif" font-size="70" font-weight="900" fill="#2563eb">Apply Anywhere.</text>
+  <text x="140" y="464" font-family="Inter, Arial, sans-serif" font-size="70" font-weight="900" fill="#07113f">Protect Your Information.</text>
+  <text x="140" y="510" font-family="Inter, Arial, sans-serif" font-size="26" fill="#475569">Verified rental information for landlords. Private documents stay protected.</text>
+</svg>

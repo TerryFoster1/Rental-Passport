@@ -26,6 +26,12 @@
   input {
     font: inherit;
   }
+
+  a:focus-visible,
+  button:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+  }
 }
 
 @layer components {

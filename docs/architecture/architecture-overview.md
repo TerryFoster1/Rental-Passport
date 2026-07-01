@@ -39,4 +39,12 @@ All business logic, workflows, validation, permissions, verification, and data a
 
 ## Current Scope
 
-This is still a scaffold. No backend services, database schema, API endpoints, application screens, or product workflows have been implemented.
+The frontend MVP is a production-facing prototype. It demonstrates the renter and landlord experience, but it must not be treated as the source of business logic. Verification workflows, permissions, audit trails, data access, regional application generation, lease workflows, and fraud review must be implemented behind secure backend APIs before real customer data is processed.
+
+## Core Architecture Documents
+
+- `docs/product/product-bible.md` defines the product north star.
+- `docs/architecture/verification-engine.md` defines the verification system and passport confidence model.
+- `docs/security/privacy-model.md` defines document privacy and permissions boundaries.
+- `docs/security/fraud-detection.md` defines fraud signals and mitigation strategy.
+- `docs/api/api-design.md` defines the future API-first integration surface.

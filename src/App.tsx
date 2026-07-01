@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -36,6 +36,11 @@ import {
 
 type View =
   | 'landing'
+  | 'contact'
+  | 'faq'
+  | 'privacy'
+  | 'terms'
+  | 'not-found'
   | 'tenant-dashboard'
   | 'tenant-rental'
   | 'tenant-employment'
@@ -77,6 +82,34 @@ const applicant = {
   expires: 'June 12, 2025',
   link: 'https://rentalpassport.io/p/7F8A-C3D2',
 };
+
+const routeToView: Record<string, View> = {
+  '/': 'landing',
+  '/contact': 'contact',
+  '/faq': 'faq',
+  '/privacy': 'privacy',
+  '/terms': 'terms',
+  '/app': 'tenant-dashboard',
+  '/app/rental-history': 'tenant-rental',
+  '/app/employment': 'tenant-employment',
+  '/app/references': 'tenant-references',
+  '/app/credit': 'tenant-credit',
+  '/app/identity': 'tenant-identity',
+  '/app/review-share': 'tenant-share',
+  '/app/preview': 'tenant-preview',
+  '/landlords/applicant': 'landlord-summary',
+  '/landlords/applicant/rental-history': 'landlord-rental',
+  '/landlords/applicant/employment': 'landlord-employment',
+  '/landlords/applicant/references': 'landlord-references',
+  '/landlords/applicant/credit': 'landlord-credit',
+  '/landlords/applicant/identity': 'landlord-identity',
+};
+
+const viewToRoute = Object.fromEntries(Object.entries(routeToView).map(([path, view]) => [view, path])) as Record<View, string>;
+
+function getInitialView(): View {
+  return routeToView[window.location.pathname] ?? 'not-found';
+}
 
 const sections: Section[] = [
   {
@@ -248,32 +281,53 @@ const requirements: Record<SectionKey, Requirement[]> = {
 type Requirement = [string, string, string, LucideIcon, boolean];
 
 export default function App() {
-  const [view, setView] = useState<View>('landing');
+  const [view, setView] = useState<View>(getInitialView);
   const isLandlord = view.startsWith('landlord');
+  const isPublic = ['landing', 'contact', 'faq', 'privacy', 'terms', 'not-found'].includes(view);
+
+  useEffect(() => {
+    const onPopState = () => setView(getInitialView());
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const go = (nextView: View) => {
+    setView(nextView);
+    const path = viewToRoute[nextView] ?? '/';
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f8fbff] text-navy">
-      <Header isLandlord={isLandlord} isLanding={view === 'landing'} go={setView} />
-      {view === 'landing' && <LandingPage go={setView} />}
-      {view === 'tenant-dashboard' && <TenantDashboard go={setView} />}
-      {view === 'tenant-rental' && <TenantSection page="rental" go={setView} />}
-      {view === 'tenant-employment' && <TenantSection page="employment" go={setView} />}
-      {view === 'tenant-references' && <TenantSection page="references" go={setView} />}
-      {view === 'tenant-credit' && <TenantSection page="credit" go={setView} />}
-      {view === 'tenant-identity' && <TenantSection page="identity" go={setView} />}
-      {view === 'tenant-share' && <ReviewShare go={setView} />}
-      {view === 'tenant-preview' && <LandlordSummary go={setView} preview />}
-      {view === 'landlord-summary' && <LandlordSummary go={setView} />}
-      {view === 'landlord-rental' && <LandlordDetail page="rental" go={setView} />}
-      {view === 'landlord-employment' && <LandlordDetail page="employment" go={setView} />}
-      {view === 'landlord-references' && <LandlordDetail page="references" go={setView} />}
-      {view === 'landlord-credit' && <CreditDetail go={setView} />}
-      {view === 'landlord-identity' && <LandlordDetail page="identity" go={setView} />}
+      <Header isLandlord={isLandlord} isPublic={isPublic} go={go} />
+      {view === 'landing' && <LandingPage go={go} />}
+      {view === 'contact' && <ContactPage go={go} />}
+      {view === 'faq' && <FAQPage go={go} />}
+      {view === 'privacy' && <LegalPage type="privacy" go={go} />}
+      {view === 'terms' && <LegalPage type="terms" go={go} />}
+      {view === 'not-found' && <NotFoundPage go={go} />}
+      {view === 'tenant-dashboard' && <TenantDashboard go={go} />}
+      {view === 'tenant-rental' && <TenantSection page="rental" go={go} />}
+      {view === 'tenant-employment' && <TenantSection page="employment" go={go} />}
+      {view === 'tenant-references' && <TenantSection page="references" go={go} />}
+      {view === 'tenant-credit' && <TenantSection page="credit" go={go} />}
+      {view === 'tenant-identity' && <TenantSection page="identity" go={go} />}
+      {view === 'tenant-share' && <ReviewShare go={go} />}
+      {view === 'tenant-preview' && <LandlordSummary go={go} preview />}
+      {view === 'landlord-summary' && <LandlordSummary go={go} />}
+      {view === 'landlord-rental' && <LandlordDetail page="rental" go={go} />}
+      {view === 'landlord-employment' && <LandlordDetail page="employment" go={go} />}
+      {view === 'landlord-references' && <LandlordDetail page="references" go={go} />}
+      {view === 'landlord-credit' && <CreditDetail go={go} />}
+      {view === 'landlord-identity' && <LandlordDetail page="identity" go={go} />}
+      <Footer go={go} />
     </div>
   );
 }
 
-function Header({ isLandlord, isLanding, go }: { isLandlord: boolean; isLanding: boolean; go: (view: View) => void }) {
+function Header({ isLandlord, isPublic, go }: { isLandlord: boolean; isPublic: boolean; go: (view: View) => void }) {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
@@ -293,9 +347,10 @@ function Header({ isLandlord, isLanding, go }: { isLandlord: boolean; isLanding:
             <ShieldCheck className="h-5 w-5 text-emerald-600" />
             {isLandlord ? 'Secure. Private. Trusted.' : 'Your data is secure and encrypted'}
           </span>
-          {isLanding ? (
+          {isPublic ? (
             <>
               <a href="#how-it-works" className="font-bold text-slate-700 hover:text-blue-700">How it works</a>
+              <button onClick={() => go('faq')} className="font-bold text-slate-700 hover:text-blue-700">FAQ</button>
               <Button onClick={() => go('landlord-summary')}>Landlord Preview</Button>
               <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')}>Create Passport</Button>
             </>
@@ -479,6 +534,153 @@ function LandingPage({ go }: { go: (view: View) => void }) {
         <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')} className="mt-8">Create My Free Passport</Button>
       </section>
     </main>
+  );
+}
+
+function ContactPage({ go }: { go: (view: View) => void }) {
+  return (
+    <main className="mx-auto max-w-5xl px-5 py-16 lg:px-8">
+      <Badge tone="blue">Contact</Badge>
+      <h1 className="mt-5 text-5xl font-black tracking-tight">We are building a safer way to apply for rentals.</h1>
+      <p className="mt-5 max-w-3xl text-xl leading-8 text-slate-700">
+        Rental Passport is designed for renters, landlords, and partners who want applications to be faster, more trustworthy, and more private.
+      </p>
+      <div className="mt-10 grid gap-5 md:grid-cols-2">
+        <Card className="p-7">
+          <IconBubble icon={Mail} tone="blue" />
+          <h2 className="mt-5 text-2xl font-black">General inquiries</h2>
+          <p className="mt-3 text-slate-700">Questions about Rental Passport, privacy, verification, or partnerships.</p>
+          <a className="mt-5 inline-flex font-black text-blue-700" href="mailto:hello@rentalpassport.io">hello@rentalpassport.io</a>
+        </Card>
+        <Card className="p-7">
+          <IconBubble icon={ShieldCheck} tone="green" />
+          <h2 className="mt-5 text-2xl font-black">Privacy and security</h2>
+          <p className="mt-3 text-slate-700">Questions about document privacy, permissions, or future security review.</p>
+          <a className="mt-5 inline-flex font-black text-blue-700" href="mailto:privacy@rentalpassport.io">privacy@rentalpassport.io</a>
+        </Card>
+      </div>
+      <Card className="mt-8 border-blue-200 bg-blue-50 p-7">
+        <h2 className="text-2xl font-black">For early partners</h2>
+        <p className="mt-3 text-slate-700">Rental Passport is API-first. Future integrations are being designed for rental platforms, listing websites, brokerages, landlords, and property management systems.</p>
+        <Button primary icon={ArrowRight} onClick={() => go('landing')} className="mt-5">Back to Homepage</Button>
+      </Card>
+    </main>
+  );
+}
+
+function FAQPage({ go }: { go: (view: View) => void }) {
+  const faqs = [
+    ['Is Rental Passport a document sharing platform?', 'No. Rental Passport is a verification platform. Documents stay private by default. Landlords receive verified information and summaries, not copies of private documents.'],
+    ['What can landlords see?', 'Landlords can review your completed rental application, verification status, evidence summaries, confidence signals, and application package. Raw documents are not downloadable by default.'],
+    ['Can I revoke access?', 'The platform is designed around renter-controlled access, expiring links, view tracking, and revocation. The MVP UI shows this product direction while backend permissions are implemented.'],
+    ['Do I need a lease to verify rental history?', 'No. Rental history should support multiple evidence paths, including landlord contact, property manager confirmation, payment history, bank transfer matching, and lease review when available.'],
+    ['Is the confidence score a tenant score?', 'No. Rental Passport Confidence measures confidence in the passport evidence and freshness, not personal worthiness or tenant quality.'],
+    ['What happens after approval?', 'Rental Passport owns the pre-tenancy workflow through application, approval, regional lease generation, digital signing, and executed lease handoff. Active tenancy management belongs in Rental District.'],
+  ];
+
+  return (
+    <main className="mx-auto max-w-5xl px-5 py-16 lg:px-8">
+      <Badge tone="blue">FAQ</Badge>
+      <h1 className="mt-5 text-5xl font-black tracking-tight">Questions renters and landlords ask first.</h1>
+      <div className="mt-10 space-y-4">
+        {faqs.map(([question, answer]) => (
+          <Card key={question} className="p-6">
+            <h2 className="text-xl font-black">{question}</h2>
+            <p className="mt-3 leading-7 text-slate-700">{answer}</p>
+          </Card>
+        ))}
+      </div>
+      <div className="mt-10 flex flex-wrap gap-3">
+        <Button primary icon={ArrowRight} onClick={() => go('tenant-dashboard')}>Create Your Free Passport</Button>
+        <Button icon={Mail} onClick={() => go('contact')}>Contact Us</Button>
+      </div>
+    </main>
+  );
+}
+
+function LegalPage({ type, go }: { type: 'privacy' | 'terms'; go: (view: View) => void }) {
+  const isPrivacy = type === 'privacy';
+  const sections = isPrivacy
+    ? [
+        ['Privacy-first by default', 'Rental Passport is designed so sensitive documents remain inside the platform. Landlords receive verification summaries unless the renter explicitly authorizes a broader future sharing workflow.'],
+        ['Information we expect to protect', 'Identity details, contact information, employment and income evidence, rental history, references, credit summaries, uploaded documents, verification records, permissions, and audit history.'],
+        ['How information is used', 'Information is used to create a reusable rental identity, verify claims, generate application packages, support landlord review, and maintain security and fraud controls.'],
+        ['Cookies', 'The current MVP does not require non-essential marketing cookies. If analytics, advertising, or tracking cookies are introduced later, the cookie notice and consent model must be updated before release.'],
+        ['Renter control', 'The target permission model includes expiring links, revocation, view tracking, consent receipts, and future document-specific authorization.'],
+      ]
+    : [
+        ['Platform purpose', 'Rental Passport helps renters build a reusable verified rental profile and helps landlords review applications with greater confidence.'],
+        ['No raw document entitlement', 'Landlord access does not include raw private documents by default. Application packages contain completed applications, summaries, verification evidence, and permitted outputs.'],
+        ['Verification limits', 'Verification confidence depends on evidence quality, provider availability, freshness, and manual review outcomes. A verified passport is not a guarantee of tenancy approval.'],
+        ['Acceptable use', 'Users must not submit forged documents, impersonate another person, create duplicate identities, misrepresent employment or income, or misuse shared passport links.'],
+        ['Future services', 'Payments, provider integrations, digital leases, OAuth integrations, and APIs may be introduced under additional terms before live use.'],
+      ];
+
+  return (
+    <main className="mx-auto max-w-4xl px-5 py-16 lg:px-8">
+      <Badge tone="blue">{isPrivacy ? 'Privacy Policy' : 'Terms of Service'}</Badge>
+      <h1 className="mt-5 text-5xl font-black tracking-tight">{isPrivacy ? 'Your Information Stays Yours.' : 'Trust starts with clear rules.'}</h1>
+      <p className="mt-4 text-slate-600">Last updated: July 1, 2026</p>
+      <div className="mt-10 space-y-5">
+        {sections.map(([title, text]) => (
+          <Card key={title} className="p-6">
+            <h2 className="text-xl font-black">{title}</h2>
+            <p className="mt-3 leading-7 text-slate-700">{text}</p>
+          </Card>
+        ))}
+      </div>
+      <Card className="mt-8 border-orange-200 bg-orange-50 p-6">
+        <h2 className="text-xl font-black">Legal review required before launch with real users</h2>
+        <p className="mt-3 leading-7 text-slate-700">This page is production-facing MVP copy for transparency, not a substitute for legal counsel. Before collecting real renter data, counsel should review privacy, consent, screening, credit, regional rental, and consumer-reporting requirements.</p>
+      </Card>
+      <Button icon={ArrowLeft} onClick={() => go('landing')} className="mt-8">Back to Homepage</Button>
+    </main>
+  );
+}
+
+function NotFoundPage({ go }: { go: (view: View) => void }) {
+  return (
+    <main className="mx-auto max-w-3xl px-5 py-20 text-center lg:px-8">
+      <Badge tone="slate">404</Badge>
+      <h1 className="mt-5 text-5xl font-black tracking-tight">This page is not available.</h1>
+      <p className="mt-4 text-xl leading-8 text-slate-700">The link may be expired, revoked, or no longer part of this Rental Passport prototype.</p>
+      <div className="mt-8 flex justify-center gap-3">
+        <Button primary icon={ArrowRight} onClick={() => go('landing')}>Go Home</Button>
+        <Button icon={Mail} onClick={() => go('contact')}>Contact Support</Button>
+      </div>
+    </main>
+  );
+}
+
+function Footer({ go }: { go: (view: View) => void }) {
+  return (
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 md:grid-cols-[1.2fr_1fr_1fr] lg:px-8">
+        <div>
+          <button className="text-left text-2xl font-black tracking-tight" onClick={() => go('landing')}>
+            Rental Passport<span className="text-blue-600">.io</span>
+          </button>
+          <p className="mt-3 max-w-md text-slate-700">Fill it out once. Apply anywhere. Protect your information.</p>
+          <p className="mt-4 text-sm text-slate-500">Rental Passport is a verification platform. Documents stay private by default.</p>
+        </div>
+        <div>
+          <h2 className="font-black">Product</h2>
+          <div className="mt-3 grid gap-2 text-left">
+            <button className="text-left text-slate-700 hover:text-blue-700" onClick={() => go('landing')}>Home</button>
+            <button className="text-left text-slate-700 hover:text-blue-700" onClick={() => go('faq')}>FAQ</button>
+            <button className="text-left text-slate-700 hover:text-blue-700" onClick={() => go('contact')}>Contact</button>
+          </div>
+        </div>
+        <div>
+          <h2 className="font-black">Trust</h2>
+          <div className="mt-3 grid gap-2 text-left">
+            <button className="text-left text-slate-700 hover:text-blue-700" onClick={() => go('privacy')}>Privacy Policy</button>
+            <button className="text-left text-slate-700 hover:text-blue-700" onClick={() => go('terms')}>Terms of Service</button>
+            <a className="text-slate-700 hover:text-blue-700" href="mailto:privacy@rentalpassport.io">privacy@rentalpassport.io</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }
 
