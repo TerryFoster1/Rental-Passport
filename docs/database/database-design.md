@@ -1,6 +1,18 @@
 # Database Blueprint
 
-This is an implementation-ready database blueprint. It defines entities, relationships, constraints, indexes, audit strategy, storage, and permissions. It does not define SQL migrations yet.
+This is an implementation-ready database blueprint. It defines entities, relationships, constraints, indexes, audit strategy, storage, and permissions.
+
+Phase 1 now includes an initial SQL migration for the account foundation only:
+
+- `profiles`
+- `roles`
+- `user_roles`
+- `permissions`
+- `role_permissions`
+- `consent_records`
+- `audit_logs`
+
+Passport, verification, sharing, document, application, and integration tables remain future-phase work.
 
 ## Data Philosophy
 

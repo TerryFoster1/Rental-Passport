@@ -58,7 +58,19 @@ If supporting documents are viewable online in the future, the viewer must be:
 
 ## Future Permission Surfaces
 
-No permission model is implemented yet. Future surfaces may include renter-owned passport access, landlord secure access, recipient-specific invitation access, landlord Applications dashboard access, temporary sharing links, QR-code access, downloadable application package access, third-party integration access, service-role verification workflows, enterprise administrator boundaries, escrow access boundaries, and lease-signing access boundaries.
+Phase 1 implements only the foundational account role and permission layer required for protected routing and future access control. It does not grant access to passport data because passport data is not implemented yet.
+
+Implemented Phase 1 roles:
+
+- `tenant`
+- `landlord`
+- `property_manager`
+- `verification_reviewer`
+- `support`
+- `compliance`
+- `administrator`
+
+Future surfaces may include renter-owned passport access, landlord secure access, recipient-specific invitation access, landlord Applications dashboard access, temporary sharing links, QR-code access, downloadable application package access, third-party integration access, service-role verification workflows, enterprise administrator boundaries, escrow access boundaries, and lease-signing access boundaries.
 
 ## Sorting and Filtering Permissions
 
