@@ -12,7 +12,14 @@ Phase 1 now includes an initial SQL migration for the account foundation only:
 - `consent_records`
 - `audit_logs`
 
-Passport, verification, sharing, document, application, and integration tables remain future-phase work.
+Phase 2 adds the passport framework:
+
+- `passports`
+- `passport_versions`
+- `passport_section_statuses`
+- `passport_activity_logs`
+
+Deep section payload tables, verification workflow tables, sharing tables, document tables, application tables, and integration tables remain future-phase work.
 
 ## Data Philosophy
 

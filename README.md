@@ -48,9 +48,9 @@ The long-term goal is to support "Apply with RentalPassport.io" across listing w
 
 ## Current Scope
 
-The repository contains the Phase 1 production foundation: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, production-readiness assets, architecture documentation, and the first Supabase migration for profiles, roles, permissions, consent, and audit logging.
+The repository contains the Phase 1 production foundation and Phase 2 passport framework: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, tenant passport dashboard, passport overview, passport section placeholders, activity foundation, production-readiness assets, architecture documentation, and Supabase migrations for profiles, roles, permissions, consent, audit logging, passports, versions, section statuses, and passport activity.
 
-Passport data, real backend verification workflows, public APIs, provider integrations, uploads, escrow, and digital lease workflows are not implemented yet.
+Deep passport section data, real backend verification workflows, public APIs, provider integrations, uploads, secure sharing, landlord dashboards, escrow, and digital lease workflows are not implemented yet.
 
 ## Foundational Docs
 
@@ -62,6 +62,7 @@ Passport data, real backend verification workflows, public APIs, provider integr
 - Manual-First MVP: `docs/architecture/manual-first-mvp.md`
 - MVP Implementation Plan: `docs/architecture/mvp-implementation-plan.md`
 - Phase 1 Foundation: `docs/architecture/phase-1-foundation.md`
+- Phase 2 Passport Framework: `docs/architecture/phase-2-passport-framework.md`
 - Internal Reviewer Portal: `docs/architecture/internal-reviewer-portal.md`
 - Regional Compliance: `docs/architecture/regional-compliance.md`
 - User Flows: `docs/features/user-flows.md`

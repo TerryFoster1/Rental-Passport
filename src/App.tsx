@@ -1,28 +1,50 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { CheckCircle2, LockKeyhole, MailCheck, ShieldCheck, UserCircle2 } from 'lucide-react';
+import { CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary';
 import { Skeleton } from '@/components/feedback/Skeleton';
 import { ToastProvider } from '@/components/feedback/Toast';
 import { Card } from '@/components/ui/Card';
-import { StatusBadge, VerifiedBadge } from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage, SignInPage, SignUpPage, VerifyEmailPage } from '@/features/auth/AuthPages';
 import { ProfilePage } from '@/features/profile/ProfilePage';
+import {
+  PassportActivityPage,
+  PassportOverviewPage,
+  PassportPreviewPage,
+  PassportSectionPlaceholderPage,
+  PassportSettingsPage,
+  TenantDashboardPage,
+} from '@/features/passport/pages/PassportPages';
 import { AppShell } from '@/layouts/AppShell';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { env } from '@/lib/env';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { ProgressCard } from '@/components/layout/ProgressCard';
 
 const authRoutes = new Set(['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/verify-email', '/auth/callback']);
 const publicRoutes = new Set(['/', '/privacy', '/terms', '/contact', '/faq']);
-const protectedRoutes = new Set(['/app', '/profile', '/onboarding/profile', '/landlord']);
+const protectedRoutes = new Set([
+  '/app',
+  '/dashboard',
+  '/profile',
+  '/onboarding/profile',
+  '/landlord',
+  '/passport',
+  '/passport/preview',
+  '/passport/activity',
+  '/passport/settings',
+  '/passport/rental-history',
+  '/passport/employment',
+  '/passport/references',
+  '/passport/credit-report',
+  '/passport/identity',
+]);
 
 function getPath() {
   return window.location.pathname || '/';
@@ -121,6 +143,14 @@ function ProtectedApp({ pathname, onNavigate }: { pathname: string; onNavigate: 
     );
   }
 
+  if (pathname.startsWith('/passport') || pathname === '/dashboard' || pathname === '/app') {
+    return (
+      <AppShell onNavigate={onNavigate}>
+        <TenantPassportRoute pathname={pathname} onNavigate={onNavigate} />
+      </AppShell>
+    );
+  }
+
   if (pathname === '/landlord') {
     return (
       <AppShell mode="landlord" onNavigate={onNavigate}>
@@ -131,11 +161,21 @@ function ProtectedApp({ pathname, onNavigate }: { pathname: string; onNavigate: 
     );
   }
 
-  return (
-    <AppShell onNavigate={onNavigate}>
-      <TenantFoundation onNavigate={onNavigate} />
-    </AppShell>
-  );
+  return null;
+}
+
+function TenantPassportRoute({ pathname, onNavigate }: { pathname: string; onNavigate: (path: string) => void }) {
+  if (pathname === '/app' || pathname === '/dashboard') return <TenantDashboardPage onNavigate={onNavigate} />;
+  if (pathname === '/passport') return <PassportOverviewPage onNavigate={onNavigate} />;
+  if (pathname === '/passport/preview') return <PassportPreviewPage onNavigate={onNavigate} />;
+  if (pathname === '/passport/activity') return <PassportActivityPage onNavigate={onNavigate} />;
+  if (pathname === '/passport/settings') return <PassportSettingsPage onNavigate={onNavigate} />;
+  if (pathname === '/passport/rental-history') return <PassportSectionPlaceholderPage sectionKey="rental_history" onNavigate={onNavigate} />;
+  if (pathname === '/passport/employment') return <PassportSectionPlaceholderPage sectionKey="employment" onNavigate={onNavigate} />;
+  if (pathname === '/passport/references') return <PassportSectionPlaceholderPage sectionKey="references" onNavigate={onNavigate} />;
+  if (pathname === '/passport/credit-report') return <PassportSectionPlaceholderPage sectionKey="credit_report" onNavigate={onNavigate} />;
+  if (pathname === '/passport/identity') return <PassportSectionPlaceholderPage sectionKey="identity_confirmation" onNavigate={onNavigate} />;
+  return <TenantDashboardPage onNavigate={onNavigate} />;
 }
 
 function AuthFrame({ path, children }: { path: string; children: ReactNode }) {
@@ -224,32 +264,6 @@ function LandingPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   );
 }
 
-function TenantFoundation({ onNavigate }: { onNavigate: (path: string) => void }) {
-  const auth = useAuth();
-
-  return (
-    <PageContainer>
-      <PageHeader title="Account foundation" description="Phase 1 keeps the tenant workspace focused on account readiness. Passport modules are intentionally reserved for Phase 2." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <div className="grid gap-5 md:grid-cols-2">
-          <FoundationCard icon={<MailCheck />} title="Email verification" status={auth.isEmailVerified ? 'Verified' : 'Needs verification'} verified={auth.isEmailVerified} />
-          <FoundationCard icon={<UserCircle2 />} title="Profile" status={auth.profile ? 'Available' : 'Required'} verified={Boolean(auth.profile)} />
-          <FoundationCard icon={<LockKeyhole />} title="Phone verification" status="Manual placeholder" />
-          <FoundationCard icon={<ShieldCheck />} title="Consent records" status="Ready for account events" />
-        </div>
-        <aside className="space-y-5">
-          <ProgressCard label="Foundation readiness" value={auth.profile && auth.isEmailVerified ? 100 : auth.isEmailVerified ? 60 : 30} description="Readiness reflects account verification and profile completion only." />
-          <Card className="p-6">
-            <h2 className="text-xl font-black">Phase Boundary</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-700">No passport, employment, rental history, identity, credit, sharing, or landlord review features are implemented in Phase 1.</p>
-            <Button className="mt-5" onClick={() => onNavigate('/profile')}>Review Profile</Button>
-          </Card>
-        </aside>
-      </div>
-    </PageContainer>
-  );
-}
-
 function LandlordFoundation() {
   return (
     <PageContainer>
@@ -274,19 +288,6 @@ function PublicInfoPage({ path }: { path: string }) {
       <PageHeader title={title} description={`${env.appName} public policy and support content will be maintained through the documentation-backed content process.`} />
       <Alert tone="info">This placeholder keeps public routing stable without introducing business workflows before their implementation phase.</Alert>
     </PageContainer>
-  );
-}
-
-function FoundationCard({ icon, title, status, verified = false }: { icon: ReactNode; title: string; status: string; verified?: boolean }) {
-  return (
-    <Card className="p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700 [&_svg]:h-6 [&_svg]:w-6">{icon}</div>
-        {verified ? <VerifiedBadge /> : <StatusBadge status={status} />}
-      </div>
-      <h2 className="mt-5 text-xl font-black">{title}</h2>
-      <p className="mt-2 text-sm text-slate-600">{status}</p>
-    </Card>
   );
 }
 

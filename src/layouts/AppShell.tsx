@@ -1,9 +1,10 @@
-import { LogOut, ShieldCheck, UserCircle } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { FileText, LayoutDashboard, LogOut, ShieldCheck, UserCircle } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/features/auth/AuthProvider';
 
-export function AppShell({ children, mode = 'tenant', onNavigate }: { children: React.ReactNode; mode?: 'tenant' | 'landlord'; onNavigate: (path: string) => void }) {
+export function AppShell({ children, mode = 'tenant', onNavigate }: { children: ReactNode; mode?: 'tenant' | 'landlord'; onNavigate: (path: string) => void }) {
   const { profile, signOut } = useAuth();
   const displayName = profile?.preferred_name || [profile?.legal_first_name, profile?.legal_last_name].filter(Boolean).join(' ') || profile?.email || 'Account';
 
@@ -16,7 +17,7 @@ export function AppShell({ children, mode = 'tenant', onNavigate }: { children: 
     <div className="min-h-screen bg-[#f8fbff] text-navy">
       <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-          <button className="flex items-center gap-3 text-left" onClick={() => onNavigate('/app')}>
+          <button className="flex items-center gap-3 text-left" onClick={() => onNavigate(mode === 'tenant' ? '/dashboard' : '/landlord')}>
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-soft">
               <ShieldCheck className="h-6 w-6" />
             </span>
@@ -25,9 +26,19 @@ export function AppShell({ children, mode = 'tenant', onNavigate }: { children: 
             </span>
           </button>
           <nav className="hidden items-center gap-3 md:flex">
-            <Button variant="ghost" onClick={() => onNavigate(mode === 'tenant' ? '/app' : '/landlord')}>
-              {mode === 'tenant' ? 'Tenant Home' : 'Landlord Home'}
+            <Button variant="ghost" onClick={() => onNavigate(mode === 'tenant' ? '/dashboard' : '/landlord')}>
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              {mode === 'tenant' ? 'Dashboard' : 'Landlord Home'}
             </Button>
+            {mode === 'tenant' && (
+              <>
+                <Button variant="ghost" onClick={() => onNavigate('/passport')}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Passport
+                </Button>
+                <Button variant="ghost" onClick={() => onNavigate('/passport/activity')}>Activity</Button>
+              </>
+            )}
             <Button variant="ghost" onClick={() => onNavigate('/profile')}>
               <UserCircle className="mr-2 h-4 w-4" />
               Profile
