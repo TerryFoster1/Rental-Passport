@@ -48,7 +48,9 @@ The long-term goal is to support "Apply with RentalPassport.io" across listing w
 
 ## Current Scope
 
-The repository contains a frontend MVP, production-readiness assets, and architecture documentation. Real backend verification, database schema, APIs, provider integrations, authentication, uploads, escrow, and digital lease workflows are not implemented yet.
+The repository contains the Phase 1 production foundation: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, production-readiness assets, architecture documentation, and the first Supabase migration for profiles, roles, permissions, consent, and audit logging.
+
+Passport data, real backend verification workflows, public APIs, provider integrations, uploads, escrow, and digital lease workflows are not implemented yet.
 
 ## Foundational Docs
 
@@ -59,6 +61,7 @@ The repository contains a frontend MVP, production-readiness assets, and archite
 - Verification Operations: `docs/verification/verification-operations.md`
 - Manual-First MVP: `docs/architecture/manual-first-mvp.md`
 - MVP Implementation Plan: `docs/architecture/mvp-implementation-plan.md`
+- Phase 1 Foundation: `docs/architecture/phase-1-foundation.md`
 - Internal Reviewer Portal: `docs/architecture/internal-reviewer-portal.md`
 - Regional Compliance: `docs/architecture/regional-compliance.md`
 - User Flows: `docs/features/user-flows.md`
