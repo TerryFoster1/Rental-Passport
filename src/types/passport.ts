@@ -1,6 +1,14 @@
 export type PassportSectionKey = 'rental_history' | 'employment' | 'references' | 'credit_report' | 'identity_confirmation';
 
-export type PassportSectionStatus = 'not_started' | 'in_progress' | 'ready_for_review' | 'verified' | 'needs_reverification';
+export type PassportSectionStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'ready_for_review'
+  | 'under_review'
+  | 'verified'
+  | 'needs_more_information'
+  | 'needs_reverification'
+  | 'expired';
 
 export type PassportVerificationState = 'unverified' | 'pending_review' | 'verified' | 'needs_reverification';
 
@@ -43,7 +51,11 @@ export type PassportActivityEvent =
   | 'passport_version_created'
   | 'section_started'
   | 'section_updated'
-  | 'passport_progress_changed';
+  | 'passport_progress_changed'
+  | 'employment_draft_saved'
+  | 'employment_document_uploaded'
+  | 'employment_ready_for_review'
+  | 'employment_needs_reverification';
 
 export type PassportActivity = {
   id: string;

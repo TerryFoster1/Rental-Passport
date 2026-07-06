@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage, SignInPage, SignUpPage, VerifyEmailPage } from '@/features/auth/AuthPages';
 import { ProfilePage } from '@/features/profile/ProfilePage';
+import { EmploymentPage } from '@/features/employment/pages/EmploymentPage';
 import {
   PassportActivityPage,
   PassportOverviewPage,
@@ -171,7 +172,7 @@ function TenantPassportRoute({ pathname, onNavigate }: { pathname: string; onNav
   if (pathname === '/passport/activity') return <PassportActivityPage onNavigate={onNavigate} />;
   if (pathname === '/passport/settings') return <PassportSettingsPage onNavigate={onNavigate} />;
   if (pathname === '/passport/rental-history') return <PassportSectionPlaceholderPage sectionKey="rental_history" onNavigate={onNavigate} />;
-  if (pathname === '/passport/employment') return <PassportSectionPlaceholderPage sectionKey="employment" onNavigate={onNavigate} />;
+  if (pathname === '/passport/employment') return <EmploymentPage onNavigate={onNavigate} />;
   if (pathname === '/passport/references') return <PassportSectionPlaceholderPage sectionKey="references" onNavigate={onNavigate} />;
   if (pathname === '/passport/credit-report') return <PassportSectionPlaceholderPage sectionKey="credit_report" onNavigate={onNavigate} />;
   if (pathname === '/passport/identity') return <PassportSectionPlaceholderPage sectionKey="identity_confirmation" onNavigate={onNavigate} />;

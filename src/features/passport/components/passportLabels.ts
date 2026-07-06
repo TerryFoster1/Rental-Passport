@@ -5,8 +5,11 @@ export function sectionStatusLabel(status: PassportSectionStatus) {
     not_started: 'Not Started',
     in_progress: 'In Progress',
     ready_for_review: 'Ready for Review',
+    under_review: 'Under Review',
     verified: 'Verified',
+    needs_more_information: 'Needs More Information',
     needs_reverification: 'Needs Reverification',
+    expired: 'Expired',
   };
   return labels[status];
 }

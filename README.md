@@ -48,9 +48,9 @@ The long-term goal is to support "Apply with RentalPassport.io" across listing w
 
 ## Current Scope
 
-The repository contains the Phase 1 production foundation and Phase 2 passport framework: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, tenant passport dashboard, passport overview, passport section placeholders, activity foundation, production-readiness assets, architecture documentation, and Supabase migrations for profiles, roles, permissions, consent, audit logging, passports, versions, section statuses, and passport activity.
+The repository contains the Phase 1 production foundation, Phase 2 passport framework, and Phase 3 employment module: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, tenant passport dashboard, passport overview, employment section, passport section placeholders, activity foundation, production-readiness assets, architecture documentation, and Supabase migrations for profiles, roles, permissions, consent, audit logging, passports, versions, section statuses, passport activity, and employment verification foundations.
 
-Deep passport section data, real backend verification workflows, public APIs, provider integrations, uploads, secure sharing, landlord dashboards, escrow, and digital lease workflows are not implemented yet.
+Deep rental history, references, credit, identity, real backend verification workflows, public APIs, provider integrations, secure sharing, landlord dashboards, escrow, and digital lease workflows are not implemented yet.
 
 ## Foundational Docs
 
@@ -63,6 +63,7 @@ Deep passport section data, real backend verification workflows, public APIs, pr
 - MVP Implementation Plan: `docs/architecture/mvp-implementation-plan.md`
 - Phase 1 Foundation: `docs/architecture/phase-1-foundation.md`
 - Phase 2 Passport Framework: `docs/architecture/phase-2-passport-framework.md`
+- Phase 3 Employment Module: `docs/architecture/phase-3-employment-module.md`
 - Internal Reviewer Portal: `docs/architecture/internal-reviewer-portal.md`
 - Regional Compliance: `docs/architecture/regional-compliance.md`
 - User Flows: `docs/features/user-flows.md`

@@ -19,7 +19,15 @@ Phase 2 adds the passport framework:
 - `passport_section_statuses`
 - `passport_activity_logs`
 
-Deep section payload tables, verification workflow tables, sharing tables, document tables, application tables, and integration tables remain future-phase work.
+Phase 3 adds the employment module foundation:
+
+- `employment_records`
+- `employment_contacts`
+- `employment_documents`
+- `employment_verification_requests`
+- `employment_verification_signals`
+
+Deep rental history, references, credit, identity, sharing tables, application tables, and integration tables remain future-phase work.
 
 ## Data Philosophy
 

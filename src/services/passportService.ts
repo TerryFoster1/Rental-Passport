@@ -334,16 +334,19 @@ function statusToProgress(status: PassportSectionStatus) {
     not_started: 0,
     in_progress: 50,
     ready_for_review: 80,
+    under_review: 85,
     verified: 100,
+    needs_more_information: 65,
     needs_reverification: 75,
+    expired: 50,
   };
   return map[status];
 }
 
 function statusToVerificationState(status: PassportSectionStatus): PassportVerificationState {
   if (status === 'verified') return 'verified';
-  if (status === 'ready_for_review' || status === 'in_progress') return 'pending_review';
-  if (status === 'needs_reverification') return 'needs_reverification';
+  if (status === 'ready_for_review' || status === 'under_review' || status === 'in_progress') return 'pending_review';
+  if (status === 'needs_reverification' || status === 'expired') return 'needs_reverification';
   return 'unverified';
 }
 
