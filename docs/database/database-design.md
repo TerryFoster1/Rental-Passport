@@ -35,7 +35,16 @@ Phase 4 adds the rental history module foundation:
 - `rental_history_verification_requests`
 - `rental_history_verification_signals`
 
-References, credit, identity, sharing tables, application tables, and integration tables remain future-phase work.
+Phase 5 adds the references module foundation:
+
+- `references`
+- `reference_relationships`
+- `reference_verification_requests`
+- `reference_verification_signals`
+- `reference_notes`
+- `reference_documents`
+
+Credit, identity, sharing tables, application tables, and integration tables remain future-phase work.
 
 ## Data Philosophy
 
