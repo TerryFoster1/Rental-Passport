@@ -44,7 +44,17 @@ Phase 5 adds the references module foundation:
 - `reference_notes`
 - `reference_documents`
 
-Credit, identity, sharing tables, application tables, and integration tables remain future-phase work.
+Phase 6 adds the identity verification module foundation:
+
+- `identity_profiles`
+- `identity_documents`
+- `identity_selfies`
+- `identity_verification_requests`
+- `identity_verification_signals`
+- `phone_verification_status`
+- `identity_review_notes`
+
+Credit, sharing tables, application tables, and integration tables remain future-phase work.
 
 ## Data Philosophy
 

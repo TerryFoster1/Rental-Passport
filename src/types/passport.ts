@@ -62,7 +62,11 @@ export type PassportActivityEvent =
   | 'rental_history_needs_reverification'
   | 'references_draft_saved'
   | 'references_ready_for_review'
-  | 'references_needs_reverification';
+  | 'references_needs_reverification'
+  | 'identity_draft_saved'
+  | 'identity_document_uploaded'
+  | 'identity_ready_for_review'
+  | 'identity_needs_reverification';
 
 export type PassportActivity = {
   id: string;
