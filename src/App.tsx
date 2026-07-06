@@ -13,6 +13,7 @@ import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage, SignInPage, SignUpPage, VerifyEmailPage } from '@/features/auth/AuthPages';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { EmploymentPage } from '@/features/employment/pages/EmploymentPage';
+import { RentalHistoryPage } from '@/features/rentalHistory/pages/RentalHistoryPage';
 import {
   PassportActivityPage,
   PassportOverviewPage,
@@ -171,7 +172,7 @@ function TenantPassportRoute({ pathname, onNavigate }: { pathname: string; onNav
   if (pathname === '/passport/preview') return <PassportPreviewPage onNavigate={onNavigate} />;
   if (pathname === '/passport/activity') return <PassportActivityPage onNavigate={onNavigate} />;
   if (pathname === '/passport/settings') return <PassportSettingsPage onNavigate={onNavigate} />;
-  if (pathname === '/passport/rental-history') return <PassportSectionPlaceholderPage sectionKey="rental_history" onNavigate={onNavigate} />;
+  if (pathname === '/passport/rental-history') return <RentalHistoryPage onNavigate={onNavigate} />;
   if (pathname === '/passport/employment') return <EmploymentPage onNavigate={onNavigate} />;
   if (pathname === '/passport/references') return <PassportSectionPlaceholderPage sectionKey="references" onNavigate={onNavigate} />;
   if (pathname === '/passport/credit-report') return <PassportSectionPlaceholderPage sectionKey="credit_report" onNavigate={onNavigate} />;

@@ -27,7 +27,15 @@ Phase 3 adds the employment module foundation:
 - `employment_verification_requests`
 - `employment_verification_signals`
 
-Deep rental history, references, credit, identity, sharing tables, application tables, and integration tables remain future-phase work.
+Phase 4 adds the rental history module foundation:
+
+- `rental_history_records`
+- `rental_history_contacts`
+- `rental_history_documents`
+- `rental_history_verification_requests`
+- `rental_history_verification_signals`
+
+References, credit, identity, sharing tables, application tables, and integration tables remain future-phase work.
 
 ## Data Philosophy
 

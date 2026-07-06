@@ -55,7 +55,11 @@ export type PassportActivityEvent =
   | 'employment_draft_saved'
   | 'employment_document_uploaded'
   | 'employment_ready_for_review'
-  | 'employment_needs_reverification';
+  | 'employment_needs_reverification'
+  | 'rental_history_draft_saved'
+  | 'rental_history_document_uploaded'
+  | 'rental_history_ready_for_review'
+  | 'rental_history_needs_reverification';
 
 export type PassportActivity = {
   id: string;
