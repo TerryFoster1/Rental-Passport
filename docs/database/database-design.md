@@ -54,7 +54,16 @@ Phase 6 adds the identity verification module foundation:
 - `phone_verification_status`
 - `identity_review_notes`
 
-Credit, sharing tables, application tables, and integration tables remain future-phase work.
+Phase 7 adds the credit report module foundation:
+
+- `credit_reports`
+- `credit_report_documents`
+- `credit_verification_requests`
+- `credit_verification_signals`
+- `credit_providers`
+- `credit_consents`
+
+Sharing tables, application tables, and integration tables remain future-phase work.
 
 ## Data Philosophy
 
@@ -314,7 +323,7 @@ Buckets:
 - employment-documents
 - income-documents
 - rental-history-documents
-- credit-documents
+- credit-report-documents
 - reference-documents
 - lease-documents
 - generated-application-packages
@@ -325,4 +334,6 @@ RLS must enforce tenant ownership, intended recipient access, reviewer queue acc
 
 ## Current Scope
 
-No migrations, database tables, policies, triggers, functions, or seed data are implemented yet.
+Phase 1 through Phase 7 migrations are implemented for the account foundation, passport framework, employment, rental history, references, identity verification, and credit report foundations.
+
+Sharing tables, application tables, integration tables, lease tables, and future financial-service tables remain future-phase work.

@@ -66,7 +66,11 @@ export type PassportActivityEvent =
   | 'identity_draft_saved'
   | 'identity_document_uploaded'
   | 'identity_ready_for_review'
-  | 'identity_needs_reverification';
+  | 'identity_needs_reverification'
+  | 'credit_report_draft_saved'
+  | 'credit_report_document_uploaded'
+  | 'credit_report_ready_for_review'
+  | 'credit_report_needs_reverification';
 
 export type PassportActivity = {
   id: string;
