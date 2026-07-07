@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { SignInPage } from '@/features/auth/AuthPages';
+import { generateLandlordPassportSummary } from '@/services/ai/aiAssistanceService';
 import { activateSecureAccess, getLandlordApplicationDetail, getSecureInvite, listLandlordApplications, logLandlordSectionView, updateLandlordApplicationStatus } from '@/services/sharingService';
 import type { PassportSectionKey } from '@/types/passport';
 import type { LandlordApplication, LandlordApplicationDetail, LandlordApplicationStatus, SecureInviteState } from '@/types/sharing';
@@ -166,6 +167,7 @@ export function LandlordPassportPage({ applicationId, onNavigate }: { applicatio
 
   if (error) return <PageContainer><Alert tone="error">{error}</Alert></PageContainer>;
   if (!detail) return <PageContainer><Skeleton className="h-96 w-full" /></PageContainer>;
+  const assistance = generateLandlordPassportSummary(detail);
 
   return (
     <PageContainer>
@@ -195,6 +197,14 @@ export function LandlordPassportPage({ applicationId, onNavigate }: { applicatio
           <Metric label="Verification status" value={detail.application.verification_status} />
           <Metric label="Application status" value={detail.application.status} />
         </div>
+      </Card>
+      <Card className="mt-6 p-6">
+        <h2 className="text-xl font-black">Verified Information Summary</h2>
+        <p className="mt-2 leading-7 text-slate-700">{assistance.summary}</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {assistance.facts.slice(0, 4).map((fact) => <p key={fact} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">{fact}</p>)}
+        </div>
+        <p className="mt-4 text-xs font-semibold text-slate-500">{assistance.limitations[0]}</p>
       </Card>
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
         {detail.sections.map((section) => (

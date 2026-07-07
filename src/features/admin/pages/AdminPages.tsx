@@ -18,9 +18,11 @@ import {
   EvidenceViewer,
   FraudFlagCard,
   RequestInformationModal,
+  ReviewerAssistanceCard,
   ReviewerNotes,
   VerificationChecklist,
 } from '@/features/admin/components/VerificationPortalComponents';
+import { generateReviewerAssistanceSummary } from '@/services/ai/aiAssistanceService';
 import {
   addFraudFlag,
   addVerificationNote,
@@ -162,6 +164,7 @@ export function VerificationCasePage({ caseId, onNavigate }: { caseId: string; o
 
   if (error) return <PageContainer><Alert tone="error">{error}</Alert></PageContainer>;
   if (!detail) return <PageContainer><Skeleton className="h-96 w-full" /></PageContainer>;
+  const assistance = generateReviewerAssistanceSummary(detail);
 
   return (
     <PageContainer>
@@ -169,6 +172,7 @@ export function VerificationCasePage({ caseId, onNavigate }: { caseId: string; o
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <CaseSummaryCard detail={detail} />
+          <ReviewerAssistanceCard assistance={assistance} />
           <EvidenceViewer sectionLabel={detail.case.verification_type.replaceAll('_', ' ')} />
           <VerificationChecklist items={detail.checklist} onToggle={(itemId, checked) => user && guarded(() => setChecklistItem(detail.case.id, itemId, user, checked))} />
           <ReviewerNotes notes={detail.notes} onAdd={(body) => user && guarded(() => addVerificationNote(detail.case.id, user, reviewerName, body))} />

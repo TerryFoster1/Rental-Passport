@@ -48,9 +48,9 @@ The long-term goal is to support "Apply with RentalPassport.io" across listing w
 
 ## Current Scope
 
-The repository contains the Phase 1 production foundation through Phase 10 API platform foundation: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, tenant passport dashboard, passport overview, employment section, rental history section, references section, identity section, credit report section, secure sharing page, landlord secure access flow, landlord applications dashboard, landlord passport review pages, internal verification dashboard, verification case queue, verification case workspace, hidden developer portal, versioned API route manifest, integration registry, webhook catalog, SDK plan, activity foundation, production-readiness assets, architecture documentation, and Supabase migrations for profiles, roles, permissions, consent, audit logging, passports, versions, section statuses, passport activity, employment verification foundations, rental history verification foundations, reference verification foundations, identity verification foundations, credit report verification foundations, recipient-specific sharing, landlord applications, access logging, internal verification cases, checklists, decisions, notes, fraud flags, customer information requests, developer accounts, API clients, API keys, OAuth clients, OAuth tokens, partner integrations, webhook subscriptions, webhook events, API logs, rate limits, and integration settings.
+The repository contains the Phase 1 production foundation through Phase 11 MVP launch readiness foundation: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, tenant passport dashboard, passport overview, employment section, rental history section, references section, identity section, credit report section, secure sharing page, landlord secure access flow, landlord applications dashboard, landlord passport review pages, internal verification dashboard, verification case queue, verification case workspace, hidden developer portal, versioned API route manifest, integration registry, webhook catalog, SDK plan, AI assistance guardrails, security hardening, monitoring/audit readiness, launch reports, activity foundation, production-readiness assets, architecture documentation, and Supabase migrations for profiles, roles, permissions, consent, audit logging, passports, versions, section statuses, passport activity, employment verification foundations, rental history verification foundations, reference verification foundations, identity verification foundations, credit report verification foundations, recipient-specific sharing, landlord applications, access logging, internal verification cases, checklists, decisions, notes, fraud flags, customer information requests, developer accounts, API clients, API keys, OAuth clients, OAuth tokens, partner integrations, webhook subscriptions, webhook events, API logs, rate limits, and integration settings.
 
-Production OAuth, live public APIs, webhook delivery, SDK publishing, live provider integrations, AI review, OCR, automatic fraud detection, automatic approval, full messaging, document watermark viewing, escrow, and digital lease workflows are not implemented yet.
+Production OAuth, live public APIs, webhook delivery, SDK publishing, live provider integrations, OCR, automated fraud detection, automatic approval, full messaging, document watermark viewing, escrow, and digital lease workflows are not implemented yet.
 
 ## Foundational Docs
 
@@ -72,6 +72,10 @@ Production OAuth, live public APIs, webhook delivery, SDK publishing, live provi
 - Phase 9 Internal Verification Portal: `docs/architecture/phase-9-internal-verification-portal.md`
 - Phase 10 API Platform and Partner Ecosystem: `docs/architecture/phase-10-api-platform-partner-ecosystem.md`
 - Phase 10 API Platform Docs: `docs/api/phase-10-api-platform.md`
+- Phase 11 AI, Security, and Launch Readiness: `docs/architecture/phase-11-ai-security-launch-readiness.md`
+- Launch Checklist: `docs/launch/launch-checklist.md`
+- Production Readiness Report: `docs/launch/production-readiness-report.md`
+- Known MVP Limitations: `docs/launch/known-limitations.md`
 - Internal Reviewer Portal: `docs/architecture/internal-reviewer-portal.md`
 - Regional Compliance: `docs/architecture/regional-compliance.md`
 - User Flows: `docs/features/user-flows.md`

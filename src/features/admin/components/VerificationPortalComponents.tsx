@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import type { FraudFlagType, VerificationCaseDetail, VerificationChecklistItem, VerificationDecisionType, VerificationPriority } from '@/types/verificationPortal';
+import type { ReviewerAssistanceSummary } from '@/types/launchReadiness';
 
 export function CaseSummaryCard({ detail }: { detail: VerificationCaseDetail }) {
   return (
@@ -63,6 +64,21 @@ export function EvidenceViewer({ sectionLabel }: { sectionLabel: string }) {
         <p className="font-black">Secure evidence viewer placeholder</p>
         <p className="mt-2 text-sm leading-6 text-slate-700">{sectionLabel} documents will render here for authorized reviewers only. Document views are audit logged and prepared for future AI assistance, OCR, and anomaly highlighting.</p>
       </div>
+    </Card>
+  );
+}
+
+export function ReviewerAssistanceCard({ assistance }: { assistance: ReviewerAssistanceSummary }) {
+  return (
+    <Card className="p-6">
+      <h2 className="text-xl font-black">AI Assistance</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-700">{assistance.summary}</p>
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <AssistanceColumn title="Outstanding" items={assistance.outstandingItems} empty="No outstanding checklist items." />
+        <AssistanceColumn title="Review Flags" items={assistance.potentialInconsistencies.map((item) => item.title)} empty="No generated flags." />
+        <AssistanceColumn title="Follow-up" items={assistance.followUpQuestions} empty="No follow-up prompts." />
+      </div>
+      <p className="mt-4 text-xs font-semibold text-slate-500">AI assistance does not approve, reject, or score applicants. Human reviewers make all final decisions.</p>
     </Card>
   );
 }
@@ -213,6 +229,17 @@ function SummaryMetric({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <p className="text-xs font-black uppercase text-slate-500">{label}</p>
       <strong className="mt-1 block capitalize">{value}</strong>
+    </div>
+  );
+}
+
+function AssistanceColumn({ title, items, empty }: { title: string; items: string[]; empty: string }) {
+  return (
+    <div>
+      <h3 className="text-sm font-black uppercase text-slate-500">{title}</h3>
+      <ul className="mt-2 space-y-2">
+        {(items.length > 0 ? items : [empty]).slice(0, 4).map((item) => <li key={item} className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm text-slate-700">{item}</li>)}
+      </ul>
     </div>
   );
 }
