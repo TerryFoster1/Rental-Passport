@@ -63,7 +63,18 @@ Phase 7 adds the credit report module foundation:
 - `credit_providers`
 - `credit_consents`
 
-Sharing tables, application tables, and integration tables remain future-phase work.
+Phase 8 adds secure sharing and landlord application foundations:
+
+- `passport_shares`
+- `share_tokens`
+- `share_access_logs`
+- `landlord_applications`
+- `application_status_history`
+- `application_messages`
+- `document_access_logs`
+- `secure_view_sessions`
+
+Enterprise integration tables, lease tables, and future financial-service tables remain future-phase work.
 
 ## Data Philosophy
 
@@ -334,6 +345,6 @@ RLS must enforce tenant ownership, intended recipient access, reviewer queue acc
 
 ## Current Scope
 
-Phase 1 through Phase 7 migrations are implemented for the account foundation, passport framework, employment, rental history, references, identity verification, and credit report foundations.
+Phase 1 through Phase 8 migrations are implemented for the account foundation, passport framework, employment, rental history, references, identity verification, credit report, secure sharing, and landlord application foundations.
 
-Sharing tables, application tables, integration tables, lease tables, and future financial-service tables remain future-phase work.
+Enterprise integration tables, lease tables, and future financial-service tables remain future-phase work.

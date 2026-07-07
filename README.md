@@ -48,9 +48,9 @@ The long-term goal is to support "Apply with RentalPassport.io" across listing w
 
 ## Current Scope
 
-The repository contains the Phase 1 production foundation, Phase 2 passport framework, Phase 3 employment module, Phase 4 rental history module, Phase 5 references module, Phase 6 identity verification module, and Phase 7 credit report module: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, tenant passport dashboard, passport overview, employment section, rental history section, references section, identity section, credit report section, activity foundation, production-readiness assets, architecture documentation, and Supabase migrations for profiles, roles, permissions, consent, audit logging, passports, versions, section statuses, passport activity, employment verification foundations, rental history verification foundations, reference verification foundations, identity verification foundations, and credit report verification foundations.
+The repository contains the Phase 1 production foundation, Phase 2 passport framework, Phase 3 employment module, Phase 4 rental history module, Phase 5 references module, Phase 6 identity verification module, Phase 7 credit report module, and Phase 8 secure sharing and landlord MVP module: authentication screens, protected application shell, initial account profile model, role-aware routing, shared components, tenant passport dashboard, passport overview, employment section, rental history section, references section, identity section, credit report section, secure sharing page, landlord secure access flow, landlord applications dashboard, landlord passport review pages, activity foundation, production-readiness assets, architecture documentation, and Supabase migrations for profiles, roles, permissions, consent, audit logging, passports, versions, section statuses, passport activity, employment verification foundations, rental history verification foundations, reference verification foundations, identity verification foundations, credit report verification foundations, recipient-specific sharing, landlord applications, and access logging.
 
-Real backend verification workflows, public APIs, provider integrations, secure sharing, landlord dashboards, escrow, and digital lease workflows are not implemented yet.
+Real backend verification workflows, public APIs, provider integrations, full messaging, document watermark viewing, escrow, and digital lease workflows are not implemented yet.
 
 ## Foundational Docs
 
@@ -68,6 +68,7 @@ Real backend verification workflows, public APIs, provider integrations, secure 
 - Phase 5 References Module: `docs/architecture/phase-5-references-module.md`
 - Phase 6 Identity Verification Module: `docs/architecture/phase-6-identity-verification-module.md`
 - Phase 7 Credit Report Module: `docs/architecture/phase-7-credit-report-module.md`
+- Phase 8 Secure Sharing and Landlord Experience: `docs/architecture/phase-8-secure-sharing-landlord-experience.md`
 - Internal Reviewer Portal: `docs/architecture/internal-reviewer-portal.md`
 - Regional Compliance: `docs/architecture/regional-compliance.md`
 - User Flows: `docs/features/user-flows.md`

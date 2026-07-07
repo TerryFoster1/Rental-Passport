@@ -70,7 +70,17 @@ export type PassportActivityEvent =
   | 'credit_report_draft_saved'
   | 'credit_report_document_uploaded'
   | 'credit_report_ready_for_review'
-  | 'credit_report_needs_reverification';
+  | 'credit_report_needs_reverification'
+  | 'passport_shared'
+  | 'invitation_sent'
+  | 'landlord_access_created'
+  | 'passport_viewed'
+  | 'section_viewed'
+  | 'application_saved'
+  | 'application_accepted'
+  | 'application_rejected'
+  | 'application_archived'
+  | 'share_revoked';
 
 export type PassportActivity = {
   id: string;

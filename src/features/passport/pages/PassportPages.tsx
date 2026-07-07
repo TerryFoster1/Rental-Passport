@@ -1,4 +1,4 @@
-import { ArrowLeft, FileText, Settings, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, FileText, Link2, Settings, ShieldCheck } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Skeleton } from '@/components/feedback/Skeleton';
@@ -29,7 +29,12 @@ export function TenantDashboardPage({ onNavigate }: { onNavigate: (path: string)
         eyebrow="Tenant Dashboard"
         title="Build your Rental Passport"
         description="Complete each section at your pace. This is completeness tracking, not a tenant score."
-        actions={<Button onClick={() => onNavigate('/passport/preview')}>Preview Passport</Button>}
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => onNavigate('/passport/share')}>Share Passport</Button>
+            <Button onClick={() => onNavigate('/passport/preview')}>Preview Passport</Button>
+          </div>
+        }
       />
       <TenantDashboardLayout
         aside={
@@ -66,7 +71,12 @@ export function PassportOverviewPage({ onNavigate }: { onNavigate: (path: string
         eyebrow="Passport"
         title="Passport overview"
         description="A versioned passport shell for future rental, employment, reference, credit, and identity modules."
-        actions={<Button onClick={() => onNavigate('/dashboard')}>Dashboard</Button>}
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => onNavigate('/passport/share')}>Share Passport</Button>
+            <Button onClick={() => onNavigate('/dashboard')}>Dashboard</Button>
+          </div>
+        }
       />
       <TenantDashboardLayout
         aside={
@@ -168,18 +178,32 @@ export function PassportActivityPage({ onNavigate }: { onNavigate: (path: string
 export function PassportSettingsPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   return (
     <PageContainer>
-      <PageHeader eyebrow="Settings" title="Passport settings" description="Sharing and passport preferences will be added after the core framework is validated." actions={<Button onClick={() => onNavigate('/dashboard')}>Dashboard</Button>} />
-      <Card className="p-6">
-        <div className="flex gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-            <Settings className="h-6 w-6" />
+      <PageHeader eyebrow="Settings" title="Passport settings" description="Control sharing, access, and visibility preferences for your Rental Passport." actions={<Button onClick={() => onNavigate('/dashboard')}>Dashboard</Button>} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-6">
+          <div className="flex gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+              <Link2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black">Secure sharing</h2>
+              <p className="mt-2 text-slate-700">Create recipient-specific, time-limited invitations and revoke access anytime.</p>
+              <Button className="mt-4" variant="primary" onClick={() => onNavigate('/passport/share')}>Manage Sharing</Button>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-black">Sharing is not enabled yet</h2>
-            <p className="mt-2 text-slate-700">Secure sharing, recipient-specific links, QR codes, and downloadable packages belong to later phases.</p>
+        </Card>
+        <Card className="p-6">
+          <div className="flex gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+              <Settings className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black">Document access rules</h2>
+              <p className="mt-2 text-slate-700">Landlords can view authorized summaries and document placeholders online only. Sensitive downloads are disabled by default.</p>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

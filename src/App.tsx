@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
@@ -15,8 +15,10 @@ import { ProfilePage } from '@/features/profile/ProfilePage';
 import { EmploymentPage } from '@/features/employment/pages/EmploymentPage';
 import { CreditReportPage } from '@/features/creditReport/pages/CreditReportPage';
 import { IdentityPage } from '@/features/identity/pages/IdentityPage';
+import { LandlordApplicationsPage, LandlordDetailPage, LandlordPassportPage, LandlordSecureAccessPage } from '@/features/landlord/pages/LandlordPages';
 import { RentalHistoryPage } from '@/features/rentalHistory/pages/RentalHistoryPage';
 import { ReferencesPage } from '@/features/references/pages/ReferencesPage';
+import { TenantSharePage } from '@/features/sharing/pages/TenantSharePage';
 import {
   PassportActivityPage,
   PassportOverviewPage,
@@ -39,8 +41,10 @@ const protectedRoutes = new Set([
   '/profile',
   '/onboarding/profile',
   '/landlord',
+  '/landlord/applications',
   '/passport',
   '/passport/preview',
+  '/passport/share',
   '/passport/activity',
   '/passport/settings',
   '/passport/rental-history',
@@ -101,7 +105,11 @@ function AppRoutes() {
     );
   }
 
-  if (protectedRoutes.has(pathname)) {
+  if (pathname === '/landlord/secure-access') {
+    return <LandlordSecureAccessPage onNavigate={navigate} />;
+  }
+
+  if (isProtectedRoute(pathname)) {
     return <ProtectedApp pathname={pathname} onNavigate={navigate} />;
   }
 
@@ -155,12 +163,10 @@ function ProtectedApp({ pathname, onNavigate }: { pathname: string; onNavigate: 
     );
   }
 
-  if (pathname === '/landlord') {
+  if (pathname.startsWith('/landlord')) {
     return (
       <AppShell mode="landlord" onNavigate={onNavigate}>
-        <RoleGate allowed={['landlord', 'property_manager']} fallback={<UnauthorizedWorkspace />}>
-          <LandlordFoundation />
-        </RoleGate>
+        <LandlordRoute pathname={pathname} onNavigate={onNavigate} />
       </AppShell>
     );
   }
@@ -172,6 +178,7 @@ function TenantPassportRoute({ pathname, onNavigate }: { pathname: string; onNav
   if (pathname === '/app' || pathname === '/dashboard') return <TenantDashboardPage onNavigate={onNavigate} />;
   if (pathname === '/passport') return <PassportOverviewPage onNavigate={onNavigate} />;
   if (pathname === '/passport/preview') return <PassportPreviewPage onNavigate={onNavigate} />;
+  if (pathname === '/passport/share') return <TenantSharePage onNavigate={onNavigate} />;
   if (pathname === '/passport/activity') return <PassportActivityPage onNavigate={onNavigate} />;
   if (pathname === '/passport/settings') return <PassportSettingsPage onNavigate={onNavigate} />;
   if (pathname === '/passport/rental-history') return <RentalHistoryPage onNavigate={onNavigate} />;
@@ -180,6 +187,31 @@ function TenantPassportRoute({ pathname, onNavigate }: { pathname: string; onNav
   if (pathname === '/passport/credit-report') return <CreditReportPage onNavigate={onNavigate} />;
   if (pathname === '/passport/identity') return <IdentityPage onNavigate={onNavigate} />;
   return <TenantDashboardPage onNavigate={onNavigate} />;
+}
+
+function LandlordRoute({ pathname, onNavigate }: { pathname: string; onNavigate: (path: string) => void }) {
+  if (pathname === '/landlord' || pathname === '/landlord/applications') return <LandlordApplicationsPage onNavigate={onNavigate} />;
+
+  const passportMatch = pathname.match(/^\/landlord\/applications\/([^/]+)\/passport$/);
+  if (passportMatch) return <LandlordPassportPage applicationId={passportMatch[1]} onNavigate={onNavigate} />;
+
+  const detailMatch = pathname.match(/^\/landlord\/applications\/([^/]+)\/(employment|rental-history|references|credit-report|identity)$/);
+  if (detailMatch) {
+    const sectionMap = {
+      employment: 'employment',
+      'rental-history': 'rental_history',
+      references: 'references',
+      'credit-report': 'credit_report',
+      identity: 'identity_confirmation',
+    } as const;
+    return <LandlordDetailPage applicationId={detailMatch[1]} sectionKey={sectionMap[detailMatch[2] as keyof typeof sectionMap]} onNavigate={onNavigate} />;
+  }
+
+  return <LandlordApplicationsPage onNavigate={onNavigate} />;
+}
+
+function isProtectedRoute(pathname: string) {
+  return protectedRoutes.has(pathname) || pathname.startsWith('/landlord/applications/');
 }
 
 function AuthFrame({ path, children }: { path: string; children: ReactNode }) {
@@ -216,12 +248,6 @@ function AuthFrame({ path, children }: { path: string; children: ReactNode }) {
       {children}
     </AuthLayout>
   );
-}
-
-function RoleGate({ allowed, children, fallback }: { allowed: string[]; children: ReactNode; fallback: ReactNode }) {
-  const { roles } = useAuth();
-  const hasAccess = useMemo(() => roles.some((role) => allowed.includes(role)), [allowed, roles]);
-  return hasAccess ? <>{children}</> : <>{fallback}</>;
 }
 
 function LoadingScreen() {
@@ -265,23 +291,6 @@ function LandingPage({ onNavigate }: { onNavigate: (path: string) => void }) {
         </Card>
       </section>
     </main>
-  );
-}
-
-function LandlordFoundation() {
-  return (
-    <PageContainer>
-      <PageHeader title="Landlord workspace foundation" description="This protected layout exists for future role-based workflows. Reviewer portals and dashboards are not implemented in Phase 1." />
-      <EmptyState title="No landlord features yet" description="Role routing is active. Application review, passport intake, and decision workflows begin in later phases." />
-    </PageContainer>
-  );
-}
-
-function UnauthorizedWorkspace() {
-  return (
-    <PageContainer>
-      <EmptyState title="Role access required" description="This area is reserved for landlord and property manager roles." />
-    </PageContainer>
   );
 }
 
