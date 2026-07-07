@@ -6,7 +6,7 @@ type RentalPassportLogoProps = {
 export function RentalPassportLogo({ compact = false, className = '' }: RentalPassportLogoProps) {
   return (
     <img
-      src={compact ? '/brand/rental-passport-icon.svg' : '/brand/rental-passport-logo.svg'}
+      src={compact ? '/brand/rental-passport-icon.png' : '/brand/rental-passport-logo.png'}
       alt="Rental Passport"
       className={className}
       decoding="async"
