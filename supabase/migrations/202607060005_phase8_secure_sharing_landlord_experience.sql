@@ -161,10 +161,10 @@ create index if not exists share_access_logs_share_id_idx on public.share_access
 create index if not exists document_access_logs_share_id_idx on public.document_access_logs (passport_share_id, created_at desc);
 
 drop trigger if exists update_passport_shares_updated_at on public.passport_shares;
-create trigger update_passport_shares_updated_at before update on public.passport_shares for each row execute function public.update_updated_at_column();
+create trigger update_passport_shares_updated_at before update on public.passport_shares for each row execute function public.set_updated_at();
 
 drop trigger if exists update_landlord_applications_updated_at on public.landlord_applications;
-create trigger update_landlord_applications_updated_at before update on public.landlord_applications for each row execute function public.update_updated_at_column();
+create trigger update_landlord_applications_updated_at before update on public.landlord_applications for each row execute function public.set_updated_at();
 
 alter table public.passport_shares enable row level security;
 alter table public.share_tokens enable row level security;

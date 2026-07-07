@@ -1,4 +1,4 @@
-export type UserRole = 'tenant' | 'landlord' | 'property_manager' | 'verification_reviewer' | 'support' | 'compliance' | 'administrator';
+export type UserRole = 'tenant' | 'landlord' | 'property_manager' | 'verification_reviewer' | 'senior_reviewer' | 'support' | 'compliance' | 'administrator';
 
 export type AccountStatus = 'pending_email_verification' | 'active' | 'suspended' | 'closed';
 

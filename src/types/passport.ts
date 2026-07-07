@@ -80,7 +80,16 @@ export type PassportActivityEvent =
   | 'application_accepted'
   | 'application_rejected'
   | 'application_archived'
-  | 'share_revoked';
+  | 'share_revoked'
+  | 'verification_case_created'
+  | 'verification_case_opened'
+  | 'verification_checklist_updated'
+  | 'verification_note_added'
+  | 'verification_information_requested'
+  | 'verification_section_approved'
+  | 'verification_section_rejected'
+  | 'verification_section_escalated'
+  | 'verification_fraud_review';
 
 export type PassportActivity = {
   id: string;

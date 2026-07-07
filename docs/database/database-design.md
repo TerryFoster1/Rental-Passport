@@ -74,6 +74,19 @@ Phase 8 adds secure sharing and landlord application foundations:
 - `document_access_logs`
 - `secure_view_sessions`
 
+Phase 9 adds internal verification portal foundations:
+
+- `verification_cases`
+- `verification_assignments`
+- `verification_notes`
+- `verification_checklists`
+- `verification_decisions`
+- `fraud_flags`
+- `customer_information_requests`
+- `reviewer_activity`
+- `reviewer_roles`
+- `case_history`
+
 Enterprise integration tables, lease tables, and future financial-service tables remain future-phase work.
 
 ## Data Philosophy
@@ -345,6 +358,6 @@ RLS must enforce tenant ownership, intended recipient access, reviewer queue acc
 
 ## Current Scope
 
-Phase 1 through Phase 8 migrations are implemented for the account foundation, passport framework, employment, rental history, references, identity verification, credit report, secure sharing, and landlord application foundations.
+Phase 1 through Phase 9 migrations are implemented for the account foundation, passport framework, employment, rental history, references, identity verification, credit report, secure sharing, landlord application, and internal verification portal foundations.
 
 Enterprise integration tables, lease tables, and future financial-service tables remain future-phase work.

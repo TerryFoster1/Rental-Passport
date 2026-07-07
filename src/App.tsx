@@ -9,6 +9,7 @@ import { ToastProvider } from '@/components/feedback/Toast';
 import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { AdminDashboardPage, AdminGate, VerificationCasePage, VerificationQueuePage } from '@/features/admin/pages/AdminPages';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage, SignInPage, SignUpPage, VerifyEmailPage } from '@/features/auth/AuthPages';
 import { ProfilePage } from '@/features/profile/ProfilePage';
@@ -36,6 +37,8 @@ import { PageHeader } from '@/components/layout/PageHeader';
 const authRoutes = new Set(['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/verify-email', '/auth/callback']);
 const publicRoutes = new Set(['/', '/privacy', '/terms', '/contact', '/faq']);
 const protectedRoutes = new Set([
+  '/admin',
+  '/admin/verifications',
   '/app',
   '/dashboard',
   '/profile',
@@ -155,6 +158,16 @@ function ProtectedApp({ pathname, onNavigate }: { pathname: string; onNavigate: 
     );
   }
 
+  if (pathname.startsWith('/admin')) {
+    return (
+      <AppShell mode="admin" onNavigate={onNavigate}>
+        <AdminGate>
+          <AdminRoute pathname={pathname} onNavigate={onNavigate} />
+        </AdminGate>
+      </AppShell>
+    );
+  }
+
   if (pathname.startsWith('/passport') || pathname === '/dashboard' || pathname === '/app') {
     return (
       <AppShell onNavigate={onNavigate}>
@@ -211,7 +224,15 @@ function LandlordRoute({ pathname, onNavigate }: { pathname: string; onNavigate:
 }
 
 function isProtectedRoute(pathname: string) {
-  return protectedRoutes.has(pathname) || pathname.startsWith('/landlord/applications/');
+  return protectedRoutes.has(pathname) || pathname.startsWith('/landlord/applications/') || pathname.startsWith('/admin/verifications/');
+}
+
+function AdminRoute({ pathname, onNavigate }: { pathname: string; onNavigate: (path: string) => void }) {
+  if (pathname === '/admin') return <AdminDashboardPage onNavigate={onNavigate} />;
+  if (pathname === '/admin/verifications') return <VerificationQueuePage onNavigate={onNavigate} />;
+  const caseMatch = pathname.match(/^\/admin\/verifications\/([^/]+)$/);
+  if (caseMatch) return <VerificationCasePage caseId={caseMatch[1]} onNavigate={onNavigate} />;
+  return <AdminDashboardPage onNavigate={onNavigate} />;
 }
 
 function AuthFrame({ path, children }: { path: string; children: ReactNode }) {
