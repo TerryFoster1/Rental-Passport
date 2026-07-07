@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 96" role="img" aria-label="Rental Passport">
+  <defs>
+    <linearGradient id="passportBlue" x1="16" y1="9" x2="78" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0d6bff"/>
+      <stop offset="1" stop-color="#0448d8"/>
+    </linearGradient>
+    <linearGradient id="shieldBlue" x1="57" y1="48" x2="89" y2="87" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#176fff"/>
+      <stop offset="1" stop-color="#073dbb"/>
+    </linearGradient>
+    <filter id="shadow" x="7" y="5" width="85" height="90" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#0b3ea8" flood-opacity=".2"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M24 12h33.5L76 30.5V77c0 5.5-4.5 10-10 10H24c-5.5 0-10-4.5-10-10V22c0-5.5 4.5-10 10-10Z" fill="url(#passportBlue)"/>
+    <path d="M57.5 12v14.5c0 2.2 1.8 4 4 4H76L57.5 12Z" fill="#4d95ff"/>
+    <path d="M28.5 43.5 45 30l16.5 13.5V62h-8.8V48.6H37.3V62h-8.8V43.5Z" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M34 69h20" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M34 77h15" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".9"/>
+    <path d="M71 49.5 86 55v10.8c0 11.7-6.3 19.4-15 23.2-8.7-3.8-15-11.5-15-23.2V55l15-5.5Z" fill="url(#shieldBlue)" stroke="#fff" stroke-width="4"/>
+    <path d="m64.5 68.5 4.2 4.2 8.9-10.1" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="106" y="43" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="29" font-weight="850" fill="#07113f">Rental</text>
+  <text x="106" y="75" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="29" font-weight="850" fill="#075eff">Passport</text>
+  <text x="244" y="75" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="29" font-weight="850" fill="#07113f">.io</text>
+</svg>
