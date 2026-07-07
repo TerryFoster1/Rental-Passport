@@ -87,7 +87,21 @@ Phase 9 adds internal verification portal foundations:
 - `reviewer_roles`
 - `case_history`
 
-Enterprise integration tables, lease tables, and future financial-service tables remain future-phase work.
+Phase 10 adds API platform and partner ecosystem foundations:
+
+- `developer_accounts`
+- `api_clients`
+- `api_keys`
+- `oauth_clients`
+- `oauth_tokens`
+- `partner_integrations`
+- `webhook_subscriptions`
+- `webhook_events`
+- `api_logs`
+- `rate_limit_records`
+- `integration_settings`
+
+Lease tables and future financial-service tables remain future-phase work.
 
 ## Data Philosophy
 
@@ -358,6 +372,6 @@ RLS must enforce tenant ownership, intended recipient access, reviewer queue acc
 
 ## Current Scope
 
-Phase 1 through Phase 9 migrations are implemented for the account foundation, passport framework, employment, rental history, references, identity verification, credit report, secure sharing, landlord application, and internal verification portal foundations.
+Phase 1 through Phase 10 migrations are implemented for the account foundation, passport framework, employment, rental history, references, identity verification, credit report, secure sharing, landlord application, internal verification portal, and API platform foundations.
 
 Enterprise integration tables, lease tables, and future financial-service tables remain future-phase work.

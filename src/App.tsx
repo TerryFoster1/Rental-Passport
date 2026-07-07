@@ -15,6 +15,7 @@ import { AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage, SignInPage, Si
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { EmploymentPage } from '@/features/employment/pages/EmploymentPage';
 import { CreditReportPage } from '@/features/creditReport/pages/CreditReportPage';
+import { DeveloperPortalPage } from '@/features/developers/pages/DeveloperPortalPage';
 import { IdentityPage } from '@/features/identity/pages/IdentityPage';
 import { LandlordApplicationsPage, LandlordDetailPage, LandlordPassportPage, LandlordSecureAccessPage } from '@/features/landlord/pages/LandlordPages';
 import { RentalHistoryPage } from '@/features/rentalHistory/pages/RentalHistoryPage';
@@ -35,7 +36,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 
 const authRoutes = new Set(['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/verify-email', '/auth/callback']);
-const publicRoutes = new Set(['/', '/privacy', '/terms', '/contact', '/faq']);
+const publicRoutes = new Set(['/', '/privacy', '/terms', '/contact', '/faq', '/developers']);
 const protectedRoutes = new Set([
   '/admin',
   '/admin/verifications',
@@ -103,7 +104,8 @@ function AppRoutes() {
     return (
       <PublicLayout onNavigate={navigate}>
         {pathname === '/' && <LandingPage onNavigate={navigate} />}
-        {pathname !== '/' && <PublicInfoPage path={pathname} />}
+        {pathname === '/developers' && <DeveloperPortalPage onNavigate={navigate} />}
+        {pathname !== '/' && pathname !== '/developers' && <PublicInfoPage path={pathname} />}
       </PublicLayout>
     );
   }

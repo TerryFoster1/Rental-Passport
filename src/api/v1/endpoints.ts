@@ -1,0 +1,50 @@
+import type { ApiEndpointDefinition } from '@/types/apiPlatform';
+
+export const apiV1Endpoints: ApiEndpointDefinition[] = [
+  endpoint('POST', '/api/v1/auth/token', 'Authentication', 'Exchange future OAuth authorization code for an access token.', 'oauth_client', ['auth:read'], [], 'partner'),
+  endpoint('GET', '/api/v1/users/me', 'Users', 'Return the current authenticated user profile.', 'jwt', ['users:read'], ['tenant', 'landlord', 'property_manager', 'verification_reviewer', 'senior_reviewer', 'support', 'compliance', 'administrator'], 'authenticated'),
+  endpoint('GET', '/api/v1/passports', 'Passports', 'List passports the authenticated actor is permitted to access.', 'jwt', ['passports:read'], ['tenant'], 'authenticated'),
+  endpoint('GET', '/api/v1/passports/:passportId', 'Passports', 'Read a tenant-controlled passport summary.', 'jwt', ['passports:read'], ['tenant'], 'authenticated'),
+  endpoint('GET', '/api/v1/passport-versions/:versionId', 'Passport Versions', 'Read metadata for a specific passport version.', 'jwt', ['passports:read'], ['tenant'], 'authenticated'),
+  endpoint('GET', '/api/v1/verification/status/:passportId', 'Verification', 'Read verification status for permitted passport sections.', 'api_key', ['verification:read'], [], 'partner'),
+  endpoint('POST', '/api/v1/shares', 'Shares', 'Create a tenant-approved passport share.', 'jwt', ['shares:write'], ['tenant'], 'authenticated'),
+  endpoint('GET', '/api/v1/applications', 'Applications', 'List applications visible to the authenticated landlord or partner.', 'api_key', ['applications:read'], ['landlord', 'property_manager'], 'partner'),
+  endpoint('PATCH', '/api/v1/applications/:applicationId', 'Applications', 'Update an application status within allowed workflow transitions.', 'jwt', ['applications:write'], ['landlord', 'property_manager'], 'authenticated'),
+  endpoint('GET', '/api/v1/landlords/applications', 'Landlords', 'List landlord applications bound to the authenticated email.', 'jwt', ['applications:read'], ['landlord', 'property_manager'], 'authenticated'),
+  endpoint('GET', '/api/v1/tenants/passport', 'Tenants', 'Read the tenant-owned passport shell.', 'jwt', ['passports:read'], ['tenant'], 'authenticated'),
+  endpoint('GET', '/api/v1/documents/:documentId/view-session', 'Documents', 'Create a short-lived view-only document session.', 'jwt', ['documents:read'], ['tenant', 'landlord', 'property_manager', 'verification_reviewer', 'senior_reviewer', 'compliance', 'administrator'], 'authenticated'),
+  endpoint('POST', '/api/v1/notifications', 'Notifications', 'Queue a future notification event.', 'internal', ['notifications:write'], ['support', 'administrator'], 'internal'),
+  endpoint('GET', '/api/v1/consent', 'Consent', 'Read consent records visible to the authenticated actor.', 'jwt', ['consent:read'], ['tenant'], 'authenticated'),
+  endpoint('GET', '/api/v1/activity', 'Activity', 'Read activity events visible to the authenticated actor.', 'jwt', ['activity:read'], ['tenant'], 'authenticated'),
+  endpoint('GET', '/api/v1/audit', 'Audit', 'Read internal audit records for authorized staff.', 'internal', ['audit:read'], ['compliance', 'administrator'], 'internal'),
+  endpoint('GET', '/api/v1/admin/verifications', 'Administration', 'Read internal verification queue records.', 'internal', ['admin:read'], ['verification_reviewer', 'senior_reviewer', 'compliance', 'support', 'administrator'], 'internal'),
+  endpoint('GET', '/api/v1/developer/clients', 'Developer APIs', 'List developer API client registrations.', 'api_key', ['developer:manage'], [], 'partner'),
+  endpoint('POST', '/api/v1/partner/applications', 'Partner APIs', 'Submit a partner application using tenant-approved passport data.', 'oauth_client', ['partner:write'], [], 'partner'),
+  endpoint('POST', '/api/v1/webhooks/test', 'Webhooks', 'Send a future test webhook event to a registered endpoint.', 'api_key', ['webhooks:manage'], [], 'partner'),
+];
+
+function endpoint(
+  method: ApiEndpointDefinition['method'],
+  path: string,
+  resource: string,
+  purpose: string,
+  auth: ApiEndpointDefinition['auth'],
+  requiredScopes: ApiEndpointDefinition['requiredScopes'],
+  allowedRoles: ApiEndpointDefinition['allowedRoles'],
+  rateLimitTier: ApiEndpointDefinition['rateLimitTier'],
+): ApiEndpointDefinition {
+  return {
+    method,
+    path,
+    resource,
+    purpose,
+    auth,
+    requiredScopes,
+    allowedRoles,
+    rateLimitTier,
+    inputs: ['Request headers: Authorization, X-API-Key, X-Request-ID as applicable.', 'Resource-specific JSON body or path parameters.'],
+    outputs: ['Standard API response envelope.', 'Resource-specific data object.'],
+    errors: ['unauthorized', 'forbidden_scope', 'forbidden_role', 'rate_limited', 'validation_error', 'not_found'],
+    futureExpansion: 'OpenAPI schema, typed SDK method, webhook emission, and audit metadata will be expanded in future implementation phases.',
+  };
+}
