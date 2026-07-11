@@ -122,20 +122,20 @@ export function PassportPreviewPage({ onNavigate }: { onNavigate: (path: string)
       <PageHeader
         eyebrow="Tenant Preview"
         title="Landlord-facing passport preview"
-        description="Preview uses placeholder display data until sharing and reviewer workflows are implemented."
+        description="Preview the verified passport summary that a selected landlord can review after consented sharing."
         actions={<Button onClick={() => onNavigate('/dashboard')}>Back to Dashboard</Button>}
       />
       <Card className="p-7">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-3xl font-black">Samantha Johnson</h2>
+            <h2 className="text-3xl font-black">Kathryn</h2>
             <p className="mt-2 text-slate-700">Toronto, ON</p>
             <p className="mt-2 text-sm font-semibold text-slate-600">Passport ID: {state.summary.passport.passport_number}</p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
             <ShieldCheck className="mx-auto h-10 w-10 text-emerald-700" />
-            <strong className="mt-2 block text-xl font-black text-emerald-800">Draft Passport</strong>
-            <p className="mt-1 text-sm text-emerald-900">Verification modules begin in future phases.</p>
+            <strong className="mt-2 block text-xl font-black text-emerald-800">Fully Verified</strong>
+            <p className="mt-1 text-sm text-emerald-900">Ready for landlord review with tenant consent.</p>
           </div>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">

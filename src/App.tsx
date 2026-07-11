@@ -9,15 +9,34 @@ import { ToastProvider } from '@/components/feedback/Toast';
 import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { AdminDashboardPage, AdminGate, VerificationCasePage, VerificationQueuePage } from '@/features/admin/pages/AdminPages';
+import {
+  AdminDashboardPage,
+  AdminGate,
+  VerificationCasePage,
+  VerificationQueuePage,
+} from '@/features/admin/pages/AdminPages';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
-import { AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage, SignInPage, SignUpPage, VerifyEmailPage } from '@/features/auth/AuthPages';
+import {
+  AuthCallbackPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
+  SignInPage,
+  SignUpPage,
+  VerifyEmailPage,
+} from '@/features/auth/AuthPages';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { EmploymentPage } from '@/features/employment/pages/EmploymentPage';
 import { CreditReportPage } from '@/features/creditReport/pages/CreditReportPage';
 import { DeveloperPortalPage } from '@/features/developers/pages/DeveloperPortalPage';
 import { IdentityPage } from '@/features/identity/pages/IdentityPage';
-import { LandlordApplicationsPage, LandlordDetailPage, LandlordPassportPage, LandlordSecureAccessPage } from '@/features/landlord/pages/LandlordPages';
+import {
+  LandlordApplicationsPage,
+  LandlordDetailPage,
+  LandlordPassportPage,
+  LandlordSecureAccessPage,
+} from '@/features/landlord/pages/LandlordPages';
+import { InvestorDemoPage, RentalPassportSecureViewerPage } from '@/features/demo/pages/InvestorDemoPage';
+import { PricingPage } from '@/features/pricing/pages/PricingPage';
 import { RentalHistoryPage } from '@/features/rentalHistory/pages/RentalHistoryPage';
 import { ReferencesPage } from '@/features/references/pages/ReferencesPage';
 import { TenantSharePage } from '@/features/sharing/pages/TenantSharePage';
@@ -35,8 +54,25 @@ import { env } from '@/lib/env';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 
-const authRoutes = new Set(['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/verify-email', '/auth/callback']);
-const publicRoutes = new Set(['/', '/privacy', '/terms', '/contact', '/faq', '/developers']);
+const authRoutes = new Set([
+  '/sign-in',
+  '/sign-up',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/auth/callback',
+]);
+const publicRoutes = new Set([
+  '/',
+  '/pricing',
+  '/privacy',
+  '/terms',
+  '/contact',
+  '/demo',
+  '/demo/passport-view',
+  '/faq',
+  '/developers',
+]);
 const protectedRoutes = new Set([
   '/admin',
   '/admin/verifications',
@@ -104,8 +140,13 @@ function AppRoutes() {
     return (
       <PublicLayout onNavigate={navigate}>
         {pathname === '/' && <LandingPage onNavigate={navigate} />}
+        {pathname === '/demo' && <InvestorDemoPage />}
+        {pathname === '/demo/passport-view' && <RentalPassportSecureViewerPage />}
+        {pathname === '/pricing' && <PricingPage onNavigate={navigate} />}
         {pathname === '/developers' && <DeveloperPortalPage onNavigate={navigate} />}
-        {pathname !== '/' && pathname !== '/developers' && <PublicInfoPage path={pathname} />}
+        {pathname !== '/' && pathname !== '/demo' && pathname !== '/demo/passport-view' && pathname !== '/pricing' && pathname !== '/developers' && (
+          <PublicInfoPage path={pathname} />
+        )}
       </PublicLayout>
     );
   }
@@ -120,17 +161,30 @@ function AppRoutes() {
 
   return (
     <PublicLayout onNavigate={navigate}>
-      <EmptyState title="Page not found" description="The requested page is not available in this application foundation." action={<Button onClick={() => navigate('/')}>Go Home</Button>} />
+      <EmptyState
+        title="Page not found"
+        description="The requested page is not available in this application foundation."
+        action={<Button onClick={() => navigate('/')}>Go Home</Button>}
+      />
     </PublicLayout>
   );
 }
 
-function ProtectedApp({ pathname, onNavigate }: { pathname: string; onNavigate: (path: string) => void }) {
+function ProtectedApp({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate: (path: string) => void;
+}) {
   const auth = useAuth();
 
   if (!auth.user) {
     return (
-      <AuthLayout title="Sign in required" description="Use your account credentials to continue to the protected application shell.">
+      <AuthLayout
+        title="Sign in required"
+        description="Use your account credentials to continue to the protected application shell."
+      >
         <SignInPage onNavigate={onNavigate} />
       </AuthLayout>
     );
@@ -138,7 +192,10 @@ function ProtectedApp({ pathname, onNavigate }: { pathname: string; onNavigate: 
 
   if (!auth.isEmailVerified && pathname !== '/verify-email') {
     return (
-      <AuthLayout title="Verify your email" description="Email verification is required before accessing account onboarding.">
+      <AuthLayout
+        title="Verify your email"
+        description="Email verification is required before accessing account onboarding."
+      >
         <VerifyEmailPage onNavigate={onNavigate} />
       </AuthLayout>
     );
@@ -189,8 +246,15 @@ function ProtectedApp({ pathname, onNavigate }: { pathname: string; onNavigate: 
   return null;
 }
 
-function TenantPassportRoute({ pathname, onNavigate }: { pathname: string; onNavigate: (path: string) => void }) {
-  if (pathname === '/app' || pathname === '/dashboard') return <TenantDashboardPage onNavigate={onNavigate} />;
+function TenantPassportRoute({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate: (path: string) => void;
+}) {
+  if (pathname === '/app' || pathname === '/dashboard')
+    return <TenantDashboardPage onNavigate={onNavigate} />;
   if (pathname === '/passport') return <PassportOverviewPage onNavigate={onNavigate} />;
   if (pathname === '/passport/preview') return <PassportPreviewPage onNavigate={onNavigate} />;
   if (pathname === '/passport/share') return <TenantSharePage onNavigate={onNavigate} />;
@@ -204,13 +268,23 @@ function TenantPassportRoute({ pathname, onNavigate }: { pathname: string; onNav
   return <TenantDashboardPage onNavigate={onNavigate} />;
 }
 
-function LandlordRoute({ pathname, onNavigate }: { pathname: string; onNavigate: (path: string) => void }) {
-  if (pathname === '/landlord' || pathname === '/landlord/applications') return <LandlordApplicationsPage onNavigate={onNavigate} />;
+function LandlordRoute({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate: (path: string) => void;
+}) {
+  if (pathname === '/landlord' || pathname === '/landlord/applications')
+    return <LandlordApplicationsPage onNavigate={onNavigate} />;
 
   const passportMatch = pathname.match(/^\/landlord\/applications\/([^/]+)\/passport$/);
-  if (passportMatch) return <LandlordPassportPage applicationId={passportMatch[1]} onNavigate={onNavigate} />;
+  if (passportMatch)
+    return <LandlordPassportPage applicationId={passportMatch[1]} onNavigate={onNavigate} />;
 
-  const detailMatch = pathname.match(/^\/landlord\/applications\/([^/]+)\/(employment|rental-history|references|credit-report|identity)$/);
+  const detailMatch = pathname.match(
+    /^\/landlord\/applications\/([^/]+)\/(employment|rental-history|references|credit-report|identity)$/,
+  );
   if (detailMatch) {
     const sectionMap = {
       employment: 'employment',
@@ -219,17 +293,33 @@ function LandlordRoute({ pathname, onNavigate }: { pathname: string; onNavigate:
       'credit-report': 'credit_report',
       identity: 'identity_confirmation',
     } as const;
-    return <LandlordDetailPage applicationId={detailMatch[1]} sectionKey={sectionMap[detailMatch[2] as keyof typeof sectionMap]} onNavigate={onNavigate} />;
+    return (
+      <LandlordDetailPage
+        applicationId={detailMatch[1]}
+        sectionKey={sectionMap[detailMatch[2] as keyof typeof sectionMap]}
+        onNavigate={onNavigate}
+      />
+    );
   }
 
   return <LandlordApplicationsPage onNavigate={onNavigate} />;
 }
 
 function isProtectedRoute(pathname: string) {
-  return protectedRoutes.has(pathname) || pathname.startsWith('/landlord/applications/') || pathname.startsWith('/admin/verifications/');
+  return (
+    protectedRoutes.has(pathname) ||
+    pathname.startsWith('/landlord/applications/') ||
+    pathname.startsWith('/admin/verifications/')
+  );
 }
 
-function AdminRoute({ pathname, onNavigate }: { pathname: string; onNavigate: (path: string) => void }) {
+function AdminRoute({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate: (path: string) => void;
+}) {
   if (pathname === '/admin') return <AdminDashboardPage onNavigate={onNavigate} />;
   if (pathname === '/admin/verifications') return <VerificationQueuePage onNavigate={onNavigate} />;
   const caseMatch = pathname.match(/^\/admin\/verifications\/([^/]+)$/);
@@ -291,12 +381,17 @@ function LandingPage({ onNavigate }: { onNavigate: (path: string) => void }) {
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-16 lg:grid-cols-[1fr_380px] lg:px-8">
         <div>
           <StatusBadge status="Production foundation" />
-          <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-navy md:text-6xl">Rental Passport</h1>
+          <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-navy md:text-6xl">
+            Rental Passport
+          </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-700">
-            A secure identity foundation for renters, landlords, and future rental platform integrations. Phase 1 establishes account access, trust states, and profile ownership.
+            A secure identity foundation for renters, landlords, and future rental platform
+            integrations. Phase 1 establishes account access, trust states, and profile ownership.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button variant="primary" onClick={() => onNavigate('/sign-up')}>Create Account</Button>
+            <Button variant="primary" onClick={() => onNavigate('/sign-up')}>
+              Create Account
+            </Button>
             <Button onClick={() => onNavigate('/sign-in')}>Sign In</Button>
           </div>
         </div>
@@ -305,7 +400,10 @@ function LandingPage({ onNavigate }: { onNavigate: (path: string) => void }) {
             <ShieldCheck className="h-8 w-8" />
           </div>
           <h2 className="mt-5 text-2xl font-black">Security-first platform layer</h2>
-          <p className="mt-3 text-slate-700">The web app is the first client on top of an API-first architecture. Passport data, sharing, and verification workflows begin in later phases.</p>
+          <p className="mt-3 text-slate-700">
+            The web app is the first client on top of an API-first architecture. Passport data,
+            sharing, and verification workflows begin in later phases.
+          </p>
           <div className="mt-6 space-y-3">
             <TrustRow label="Email/password authentication" />
             <TrustRow label="Google OAuth ready" />
@@ -318,11 +416,24 @@ function LandingPage({ onNavigate }: { onNavigate: (path: string) => void }) {
 }
 
 function PublicInfoPage({ path }: { path: string }) {
-  const title = path === '/privacy' ? 'Privacy' : path === '/terms' ? 'Terms' : path === '/faq' ? 'FAQ' : 'Contact';
+  const title =
+    path === '/privacy'
+      ? 'Privacy'
+      : path === '/terms'
+        ? 'Terms'
+        : path === '/faq'
+          ? 'FAQ'
+          : 'Contact';
   return (
     <PageContainer>
-      <PageHeader title={title} description={`${env.appName} public policy and support content will be maintained through the documentation-backed content process.`} />
-      <Alert tone="info">This placeholder keeps public routing stable without introducing business workflows before their implementation phase.</Alert>
+      <PageHeader
+        title={title}
+        description={`${env.appName} public policy and support content will be maintained through the documentation-backed content process.`}
+      />
+      <Alert tone="info">
+        This placeholder keeps public routing stable without introducing business workflows before
+        their implementation phase.
+      </Alert>
     </PageContainer>
   );
 }

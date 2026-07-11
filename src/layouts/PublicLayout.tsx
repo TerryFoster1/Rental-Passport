@@ -16,6 +16,20 @@ export function PublicLayout({
             <RentalPassportLogo className="h-12 w-auto max-w-[220px] sm:h-14" />
           </button>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              className="hidden sm:inline-flex"
+              onClick={() => onNavigate('/pricing')}
+            >
+              Pricing
+            </Button>
+            <Button
+              variant="ghost"
+              className="hidden md:inline-flex"
+              onClick={() => onNavigate('/demo')}
+            >
+              Demo
+            </Button>
             <Button variant="ghost" onClick={() => onNavigate('/sign-in')}>
               Sign In
             </Button>

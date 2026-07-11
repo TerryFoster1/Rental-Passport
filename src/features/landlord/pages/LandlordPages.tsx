@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Archive, ArrowLeft, CheckCircle2, Eye, FileText, LockKeyhole, Mail, ShieldCheck, Star } from 'lucide-react';
+import {
+  Archive,
+  ArrowLeft,
+  CheckCircle2,
+  Eye,
+  FileText,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  Star,
+} from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Skeleton } from '@/components/feedback/Skeleton';
@@ -12,10 +22,23 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { SignInPage } from '@/features/auth/AuthPages';
+import { LandlordReviewUpsells } from '@/features/landlord/components/LandlordReviewUpsells';
 import { generateLandlordPassportSummary } from '@/services/ai/aiAssistanceService';
-import { activateSecureAccess, getLandlordApplicationDetail, getSecureInvite, listLandlordApplications, logLandlordSectionView, updateLandlordApplicationStatus } from '@/services/sharingService';
+import {
+  activateSecureAccess,
+  getLandlordApplicationDetail,
+  getSecureInvite,
+  listLandlordApplications,
+  logLandlordSectionView,
+  updateLandlordApplicationStatus,
+} from '@/services/sharingService';
 import type { PassportSectionKey } from '@/types/passport';
-import type { LandlordApplication, LandlordApplicationDetail, LandlordApplicationStatus, SecureInviteState } from '@/types/sharing';
+import type {
+  LandlordApplication,
+  LandlordApplicationDetail,
+  LandlordApplicationStatus,
+  SecureInviteState,
+} from '@/types/sharing';
 
 export function LandlordSecureAccessPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   const auth = useAuth();
@@ -26,7 +49,9 @@ export function LandlordSecureAccessPage({ onNavigate }: { onNavigate: (path: st
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    getSecureInvite(token).then(setInvite).catch((error: Error) => setInvite({ status: 'invalid', message: error.message }));
+    getSecureInvite(token)
+      .then(setInvite)
+      .catch((error: Error) => setInvite({ status: 'invalid', message: error.message }));
   }, [token]);
 
   const createAccess = async () => {
@@ -37,7 +62,9 @@ export function LandlordSecureAccessPage({ onNavigate }: { onNavigate: (path: st
       if (!auth.user) {
         const result = await auth.signUpWithPassword(invite.share.landlord_email, password);
         if (result.error) throw result.error;
-        setMessage('Secure access created. Verify your email, then return to this invitation to continue securely.');
+        setMessage(
+          'Secure access created. Verify your email, then return to this invitation to continue securely.',
+        );
         return;
       }
       const applicationId = await activateSecureAccess(auth.user, token);
@@ -49,12 +76,21 @@ export function LandlordSecureAccessPage({ onNavigate }: { onNavigate: (path: st
     }
   };
 
-  if (!invite) return <PageContainer><Skeleton className="h-64 w-full" /></PageContainer>;
+  if (!invite)
+    return (
+      <PageContainer>
+        <Skeleton className="h-64 w-full" />
+      </PageContainer>
+    );
 
   if (invite.status !== 'valid') {
     return (
       <PageContainer>
-        <PageHeader eyebrow="Secure Access" title="Invitation unavailable" description={invite.message} />
+        <PageHeader
+          eyebrow="Secure Access"
+          title="Invitation unavailable"
+          description={invite.message}
+        />
         <Alert tone="error">{invite.message}</Alert>
       </PageContainer>
     );
@@ -63,22 +99,45 @@ export function LandlordSecureAccessPage({ onNavigate }: { onNavigate: (path: st
   if (!auth.user) {
     return (
       <PageContainer>
-        <PageHeader eyebrow="Secure Access" title="Protect applicant information" description="Create secure access or sign in before viewing this shared Rental Passport." />
+        <PageHeader
+          eyebrow="Secure Access"
+          title="Protect applicant information"
+          description="Create secure access or sign in before viewing this shared Rental Passport."
+        />
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="p-6">
             <LockKeyhole className="h-10 w-10 text-blue-700" />
             <h2 className="mt-4 text-2xl font-black">Create Secure Access</h2>
-            <p className="mt-2 text-slate-700">This invitation is restricted to {invite.share.landlord_email}.</p>
-            {message && <div className="mt-4"><Alert tone={message.includes('created') ? 'success' : 'error'}>{message}</Alert></div>}
+            <p className="mt-2 text-slate-700">
+              This invitation is restricted to {invite.share.landlord_email}.
+            </p>
+            {message && (
+              <div className="mt-4">
+                <Alert tone={message.includes('created') ? 'success' : 'error'}>{message}</Alert>
+              </div>
+            )}
             <div className="mt-5 space-y-4">
               <Input label="Recipient email" value={invite.share.landlord_email} readOnly />
-              <Input label="Secure password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
-              <Button variant="primary" onClick={createAccess} disabled={busy || password.length < 8}>{busy ? 'Securing...' : 'Continue Securely'}</Button>
+              <Input
+                label="Secure password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <Button
+                variant="primary"
+                onClick={createAccess}
+                disabled={busy || password.length < 8}
+              >
+                {busy ? 'Securing...' : 'Continue Securely'}
+              </Button>
             </div>
           </Card>
           <Card className="p-6">
             <h2 className="text-2xl font-black">Existing access</h2>
-            <p className="mt-2 text-slate-700">If you already secured this application, sign in using the invited email.</p>
+            <p className="mt-2 text-slate-700">
+              If you already secured this application, sign in using the invited email.
+            </p>
             <div className="mt-5">
               <SignInPage onNavigate={onNavigate} />
             </div>
@@ -90,11 +149,20 @@ export function LandlordSecureAccessPage({ onNavigate }: { onNavigate: (path: st
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Secure Access" title="Continue securely" description="Your account will only see applications shared with your email." />
+      <PageHeader
+        eyebrow="Secure Access"
+        title="Continue securely"
+        description="Your account will only see applications shared with your email."
+      />
       {message && <Alert tone="error">{message}</Alert>}
       <Card className="p-6">
-        <p className="text-slate-700">Invitation for {invite.share.landlord_email}. Access expires {new Date(invite.share.expires_at).toLocaleDateString()}.</p>
-        <Button className="mt-5" variant="primary" onClick={createAccess} disabled={busy}>{busy ? 'Checking...' : 'Secure This Application'}</Button>
+        <p className="text-slate-700">
+          Invitation for {invite.share.landlord_email}. Access expires{' '}
+          {new Date(invite.share.expires_at).toLocaleDateString()}.
+        </p>
+        <Button className="mt-5" variant="primary" onClick={createAccess} disabled={busy}>
+          {busy ? 'Checking...' : 'Secure This Application'}
+        </Button>
       </Card>
     </PageContainer>
   );
@@ -116,9 +184,15 @@ export function LandlordApplicationsPage({ onNavigate }: { onNavigate: (path: st
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Landlord Applications" title="Applications" description="A simple view of Rental Passports shared specifically with your email." />
+      <PageHeader
+        eyebrow="Landlord Applications"
+        title="Applications"
+        description="A simple view of Rental Passports shared specifically with your email."
+      />
       {error && <Alert tone="error">{error}</Alert>}
-      {loading ? <Skeleton className="h-52 w-full" /> : applications.length > 0 ? (
+      {loading ? (
+        <Skeleton className="h-52 w-full" />
+      ) : applications.length > 0 ? (
         <div className="grid gap-5">
           {applications.map((application) => (
             <Card key={application.id} className="p-6">
@@ -130,33 +204,58 @@ export function LandlordApplicationsPage({ onNavigate }: { onNavigate: (path: st
                       <h2 className="text-xl font-black">{application.applicant_name}</h2>
                       <StatusBadge status={application.status} />
                     </div>
-                    <p className="mt-1 text-sm text-slate-600">Passport {application.passport_number}</p>
-                    {application.property_address && <p className="mt-1 text-sm text-slate-600">{application.property_address}</p>}
+                    <p className="mt-1 text-sm text-slate-600">
+                      Passport {application.passport_number}
+                    </p>
+                    {application.property_address && (
+                      <p className="mt-1 text-sm text-slate-600">{application.property_address}</p>
+                    )}
                   </div>
                 </div>
                 <div className="grid gap-3 text-sm md:grid-cols-3 lg:min-w-[430px]">
                   <Metric label="Completeness" value={`${application.completeness}%`} />
                   <Metric label="Verification" value={application.verification_status} />
-                  <Metric label="Expires" value={new Date(application.expires_at).toLocaleDateString()} />
+                  <Metric
+                    label="Expires"
+                    value={new Date(application.expires_at).toLocaleDateString()}
+                  />
                 </div>
-                <Button variant="primary" onClick={() => onNavigate(`/landlord/applications/${application.id}/passport`)}>View Passport</Button>
+                <Button
+                  variant="primary"
+                  onClick={() => onNavigate(`/landlord/applications/${application.id}/passport`)}
+                >
+                  View Passport
+                </Button>
               </div>
             </Card>
           ))}
         </div>
-      ) : <EmptyState title="No shared applications" description="Applications appear here only after a tenant shares a Rental Passport with your email." />}
+      ) : (
+        <EmptyState
+          title="No shared applications"
+          description="Applications appear here only after a tenant shares a Rental Passport with your email."
+        />
+      )}
     </PageContainer>
   );
 }
 
-export function LandlordPassportPage({ applicationId, onNavigate }: { applicationId: string; onNavigate: (path: string) => void }) {
+export function LandlordPassportPage({
+  applicationId,
+  onNavigate,
+}: {
+  applicationId: string;
+  onNavigate: (path: string) => void;
+}) {
   const { user } = useAuth();
   const [detail, setDetail] = useState<LandlordApplicationDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    getLandlordApplicationDetail(user, applicationId).then(setDetail).catch((nextError: Error) => setError(nextError.message));
+    getLandlordApplicationDetail(user, applicationId)
+      .then(setDetail)
+      .catch((nextError: Error) => setError(nextError.message));
   }, [applicationId, user]);
 
   const action = async (status: LandlordApplicationStatus) => {
@@ -165,13 +264,33 @@ export function LandlordPassportPage({ applicationId, onNavigate }: { applicatio
     setDetail({ ...detail, application: { ...detail.application, status } });
   };
 
-  if (error) return <PageContainer><Alert tone="error">{error}</Alert></PageContainer>;
-  if (!detail) return <PageContainer><Skeleton className="h-96 w-full" /></PageContainer>;
+  if (error)
+    return (
+      <PageContainer>
+        <Alert tone="error">{error}</Alert>
+      </PageContainer>
+    );
+  if (!detail)
+    return (
+      <PageContainer>
+        <Skeleton className="h-96 w-full" />
+      </PageContainer>
+    );
   const assistance = generateLandlordPassportSummary(detail);
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Shared Passport" title={detail.application.applicant_name} description="Review the verified summary. Sensitive documents are not downloadable." actions={<Button onClick={() => onNavigate('/landlord/applications')}><ArrowLeft className="mr-2 h-4 w-4" />Applications</Button>} />
+      <PageHeader
+        eyebrow="Shared Passport"
+        title={detail.application.applicant_name}
+        description="Review the verified summary. Sensitive documents are not downloadable."
+        actions={
+          <Button onClick={() => onNavigate('/landlord/applications')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Applications
+          </Button>
+        }
+      />
       <Card className="p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
@@ -181,15 +300,32 @@ export function LandlordPassportPage({ applicationId, onNavigate }: { applicatio
                 <h2 className="text-3xl font-black">{detail.application.applicant_name}</h2>
                 <VerifiedBadge label="Fully Verified" />
               </div>
-              <p className="mt-2 text-sm font-semibold text-slate-600">Passport ID: {detail.application.passport_number}</p>
-              <p className="mt-1 text-sm text-slate-600">Received {new Date(detail.application.received_at).toLocaleDateString()} · Expires {new Date(detail.application.expires_at).toLocaleDateString()}</p>
+              <p className="mt-2 text-sm font-semibold text-slate-600">
+                Passport ID: {detail.application.passport_number}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Received {new Date(detail.application.received_at).toLocaleDateString()} · Expires{' '}
+                {new Date(detail.application.expires_at).toLocaleDateString()}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button><Mail className="mr-2 h-4 w-4" />Message Applicant</Button>
-            <Button onClick={() => action('saved')}><Star className="mr-2 h-4 w-4" />Save Applicant</Button>
-            <Button variant="primary" onClick={() => action('accepted')}><CheckCircle2 className="mr-2 h-4 w-4" />Accept Applicant</Button>
-            <Button variant="danger" onClick={() => action('archived')}><Archive className="mr-2 h-4 w-4" />Reject / Archive</Button>
+            <Button>
+              <Mail className="mr-2 h-4 w-4" />
+              Message Applicant
+            </Button>
+            <Button onClick={() => action('saved')}>
+              <Star className="mr-2 h-4 w-4" />
+              Save Applicant
+            </Button>
+            <Button variant="primary" onClick={() => action('accepted')}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Accept Applicant
+            </Button>
+            <Button variant="danger" onClick={() => action('archived')}>
+              <Archive className="mr-2 h-4 w-4" />
+              Reject / Archive
+            </Button>
           </div>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -202,7 +338,14 @@ export function LandlordPassportPage({ applicationId, onNavigate }: { applicatio
         <h2 className="text-xl font-black">Verified Information Summary</h2>
         <p className="mt-2 leading-7 text-slate-700">{assistance.summary}</p>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {assistance.facts.slice(0, 4).map((fact) => <p key={fact} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">{fact}</p>)}
+          {assistance.facts.slice(0, 4).map((fact) => (
+            <p
+              key={fact}
+              className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700"
+            >
+              {fact}
+            </p>
+          ))}
         </div>
         <p className="mt-4 text-xs font-semibold text-slate-500">{assistance.limitations[0]}</p>
       </Card>
@@ -212,19 +355,35 @@ export function LandlordPassportPage({ applicationId, onNavigate }: { applicatio
             <ShieldCheck className="h-8 w-8 text-emerald-700" />
             <h3 className="mt-4 text-lg font-black">{section.name}</h3>
             <p className="mt-2 text-sm text-slate-600">{section.progress}% complete</p>
-            <div className="mt-3"><StatusBadge status={section.status} /></div>
-            <Button className="mt-5 w-full" onClick={() => onNavigate(section.route)}>View Details</Button>
+            <div className="mt-3">
+              <StatusBadge status={section.status} />
+            </div>
+            <Button className="mt-5 w-full" onClick={() => onNavigate(section.route)}>
+              View Details
+            </Button>
           </Card>
         ))}
       </div>
       <div className="mt-6">
-        <Alert tone="info">Access is logged and limited to this recipient email. ID, selfie, pay stubs, credit reports, bank records, leases, and reference responses cannot be downloaded.</Alert>
+        <Alert tone="info">
+          Access is logged and limited to this recipient email. ID, selfie, pay stubs, credit
+          reports, bank records, leases, and reference responses cannot be downloaded.
+        </Alert>
       </div>
+      <LandlordReviewUpsells />
     </PageContainer>
   );
 }
 
-export function LandlordDetailPage({ applicationId, sectionKey, onNavigate }: { applicationId: string; sectionKey: PassportSectionKey; onNavigate: (path: string) => void }) {
+export function LandlordDetailPage({
+  applicationId,
+  sectionKey,
+  onNavigate,
+}: {
+  applicationId: string;
+  sectionKey: PassportSectionKey;
+  onNavigate: (path: string) => void;
+}) {
   const { user } = useAuth();
   const [detail, setDetail] = useState<LandlordApplicationDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -239,40 +398,77 @@ export function LandlordDetailPage({ applicationId, sectionKey, onNavigate }: { 
       .catch((nextError: Error) => setError(nextError.message));
   }, [applicationId, sectionKey, user]);
 
-  const section = useMemo(() => detail?.sections.find((item) => item.key === sectionKey), [detail, sectionKey]);
+  const section = useMemo(
+    () => detail?.sections.find((item) => item.key === sectionKey),
+    [detail, sectionKey],
+  );
 
-  if (error) return <PageContainer><Alert tone="error">{error}</Alert></PageContainer>;
-  if (!detail || !section) return <PageContainer><Skeleton className="h-96 w-full" /></PageContainer>;
+  if (error)
+    return (
+      <PageContainer>
+        <Alert tone="error">{error}</Alert>
+      </PageContainer>
+    );
+  if (!detail || !section)
+    return (
+      <PageContainer>
+        <Skeleton className="h-96 w-full" />
+      </PageContainer>
+    );
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Application Detail" title={section.name} description="View-only verification detail for this shared application." actions={<Button onClick={() => onNavigate(`/landlord/applications/${applicationId}/passport`)}><ArrowLeft className="mr-2 h-4 w-4" />Passport Summary</Button>} />
+      <PageHeader
+        eyebrow="Application Detail"
+        title={section.name}
+        description="View-only verification detail for this shared application."
+        actions={
+          <Button onClick={() => onNavigate(`/landlord/applications/${applicationId}/passport`)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Passport Summary
+          </Button>
+        }
+      />
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card className="p-6">
           <div className="flex flex-wrap items-center gap-3">
-            <VerifiedBadge label={section.verification_state === 'verified' ? 'Verified' : 'Needs Review'} />
+            <VerifiedBadge
+              label={section.verification_state === 'verified' ? 'Verified' : 'Needs Review'}
+            />
             <StatusBadge status={section.status} />
           </div>
           <h2 className="mt-5 text-2xl font-black">What was verified</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <DetailRow label="Section" value={section.name} />
-            <DetailRow label="Verification status" value={section.verification_state.replaceAll('_', ' ')} />
+            <DetailRow
+              label="Verification status"
+              value={section.verification_state.replaceAll('_', ' ')}
+            />
             <DetailRow label="Completeness" value={`${section.progress}%`} />
-            <DetailRow label="How it was verified" value="Reviewed through Rental Passport verification workflow records." />
+            <DetailRow
+              label="How it was verified"
+              value="Reviewed through Rental Passport verification workflow records."
+            />
           </div>
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-center gap-3">
               <Eye className="h-5 w-5 text-blue-700" />
               <h3 className="font-black">Supporting document viewer placeholder</h3>
             </div>
-            <p className="mt-2 text-sm leading-6 text-slate-700">Authorized supporting documents will open in a controlled, view-only session. Downloads are disabled and future watermarking is reserved for the document viewer phase.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              Authorized supporting documents will open in a controlled, view-only session.
+              Downloads are disabled and future watermarking is reserved for the document viewer
+              phase.
+            </p>
           </div>
         </Card>
         <aside className="space-y-6">
           <Card className="p-6">
             <FileText className="h-8 w-8 text-blue-700" />
             <h2 className="mt-4 text-xl font-black">Audit notice</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-700">This section view is logged for tenant transparency and access control.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              This section view is logged for tenant transparency and access control.
+            </p>
           </Card>
           <Card className="p-6">
             <h2 className="text-xl font-black">Allowed downloads</h2>
@@ -280,7 +476,9 @@ export function LandlordDetailPage({ applicationId, sectionKey, onNavigate }: { 
               <Button className="w-full">Application Summary Placeholder</Button>
               <Button className="w-full">Verification Certificate Placeholder</Button>
             </div>
-            <p className="mt-4 text-xs leading-5 text-slate-600">Sensitive source documents are view-only and cannot be downloaded.</p>
+            <p className="mt-4 text-xs leading-5 text-slate-600">
+              Sensitive source documents are view-only and cannot be downloaded.
+            </p>
           </Card>
         </aside>
       </div>

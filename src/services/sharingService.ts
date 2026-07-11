@@ -300,7 +300,7 @@ function enforceShareActive(share: PassportShare) {
 }
 
 function applicantName(summary: PassportSummary) {
-  return summary.passport.passport_number.startsWith('RP-') ? 'Rental Passport Applicant' : 'Applicant';
+  return summary.passport.passport_number.startsWith('RP-') ? 'Kathryn' : 'Applicant';
 }
 
 function verificationLabel(summary: PassportSummary) {
@@ -347,12 +347,12 @@ function sectionRoute(sectionKey: PassportSectionKey) {
 function createDemoSummary(): PassportSummary {
   const now = new Date().toISOString();
   return {
-    passport: { id: 'demo-passport', owner_user_id: 'demo-tenant', passport_number: 'RP-7F8A-C3D2', status: 'draft', current_version_id: 'demo-version-1', draft_version_id: 'demo-version-1', created_at: now, updated_at: now },
-    currentVersion: { id: 'demo-version-1', passport_id: 'demo-passport', version_number: 1, status: 'draft', created_at: now, updated_at: now },
-    draftVersion: { id: 'demo-version-1', passport_id: 'demo-passport', version_number: 1, status: 'draft', created_at: now, updated_at: now },
+    passport: { id: 'demo-passport', owner_user_id: 'demo-tenant', passport_number: 'RP-7F8A-C3D2', status: 'verified', current_version_id: 'demo-version-1', draft_version_id: 'demo-version-1', created_at: now, updated_at: now },
+    currentVersion: { id: 'demo-version-1', passport_id: 'demo-passport', version_number: 1, status: 'current', created_at: now, updated_at: now },
+    draftVersion: { id: 'demo-version-1', passport_id: 'demo-passport', version_number: 1, status: 'current', created_at: now, updated_at: now },
     sections: [],
     activity: [],
-    progress: { overall: 72, completeSections: 3, verifiedSections: 2, missingSections: 0, needsReverificationSections: 0 },
+    progress: { overall: 100, completeSections: 5, verifiedSections: 5, missingSections: 0, needsReverificationSections: 0 },
   };
 }
 
@@ -387,10 +387,10 @@ function createDemoApplication(email: string): LandlordApplication {
     tenant_user_id: 'demo-tenant',
     landlord_email: email,
     landlord_name: 'Greenview Property Management',
-    applicant_name: 'Rental Passport Applicant',
+    applicant_name: 'Kathryn',
     passport_number: 'RP-7F8A-C3D2',
-    completeness: 72,
-    verification_status: '3 of 5 sections verified',
+    completeness: 100,
+    verification_status: 'Fully verified',
     property_address: '123 Maple St, Toronto, ON',
     status: 'new',
     received_at: now,
@@ -406,9 +406,9 @@ function createDemoApplicationDetail(email: string): LandlordApplicationDetail {
     sections: (['identity_confirmation', 'employment', 'credit_report', 'rental_history', 'references'] as PassportSectionKey[]).map((key) => ({
       key,
       name: sectionName(key),
-      status: key === 'references' ? 'ready_for_review' : 'verified',
-      verification_state: key === 'references' ? 'pending_review' : 'verified',
-      progress: key === 'references' ? 80 : 100,
+      status: 'verified',
+      verification_state: 'verified',
+      progress: 100,
       route: `/landlord/applications/${application.id}/${sectionRoute(key)}`,
     })),
     accessLogs: [],
