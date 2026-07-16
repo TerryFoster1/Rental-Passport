@@ -1,19 +1,16 @@
 import { useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
 import {
-  AlertTriangle,
   ArrowLeft,
   BadgeCheck,
   CheckCircle2,
-  Clock,
+  ChevronRight,
   Download,
-  ExternalLink,
+  Eye,
   FileText,
-  Flag,
   LockKeyhole,
-  MessageSquare,
-  RefreshCcw,
+  Mail,
   ShieldCheck,
+  Star,
   X,
 } from 'lucide-react';
 import { RentalPassportLogo } from '@/components/brand/RentalPassportLogo';
@@ -29,10 +26,22 @@ import {
 } from '@/services/partnerApplicationService';
 import type {
   PartnerApplicationDocument,
-  PartnerApplicationIssue,
   PartnerApplicationSection,
   VerificationDisplayStatus,
 } from '@/types/partnerApplication';
+
+type ViewerSection = {
+  key: string;
+  title: string;
+  summary: string;
+  completenessStatus: 'Provided' | 'Verified' | 'Needs Review' | 'Missing';
+  verificationStatus: VerificationDisplayStatus;
+  requestLabel: string;
+  suppliedInformation: Array<{ label: string; value: string; status: VerificationDisplayStatus }>;
+  documents: PartnerApplicationDocument[];
+  verificationExplanation: string;
+  lastUpdated: string;
+};
 
 export function PartnerApplicationViewerPage({ applicationId }: { applicationId: string }) {
   const token = new URLSearchParams(window.location.search).get('launch_token');
@@ -40,6 +49,8 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
   const data = useMemo(() => getPartnerApplicationViewerData(applicationId), [applicationId]);
   const summary = useMemo(() => getPartnerSafeApplicationSummary(applicationId), [applicationId]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [selectedSectionKey, setSelectedSectionKey] = useState<string | null>(null);
+  const [requestedSections, setRequestedSections] = useState<Set<string>>(new Set());
 
   if (validation.status !== 'valid') {
     return <AccessDenied title="Application viewer unavailable" message={validation.message} />;
@@ -49,20 +60,25 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
     return <AccessDenied title="Application not found" message="This launch token is valid, but the requested application is unavailable." />;
   }
 
+  const sections = createViewerSections(data.sections, data.documents);
+  const selectedSection = sections.find((section) => section.key === selectedSectionKey) ?? null;
+  const isVerifiedPassport = data.statuses.filter((item) => item.status.includes('Verified')).length >= 5;
+
   const closeViewer = () => {
     postPartnerViewerEvent('viewer.closed', { applicationId: data.applicationId });
-    setNotice('Viewer close event sent when opened from an approved partner origin.');
+    setNotice('Viewer closed. Return to Rental District to continue the application decision.');
   };
 
-  const requestAction = (label: string) => {
-    postPartnerViewerEvent('application.updated', { applicationId: data.applicationId, action: label });
-    setNotice(`${label} recorded in the demo viewer. Production will create an auditable request.`);
+  const requestAction = (section: ViewerSection) => {
+    postPartnerViewerEvent('application.updated', { applicationId: data.applicationId, action: section.requestLabel });
+    setRequestedSections((current) => new Set(current).add(section.key));
+    setNotice(`${section.requestLabel} sent to the tenant.`);
   };
 
   return (
-    <main className="min-h-screen bg-[#f8fbff] text-navy">
+    <main className="min-h-screen bg-[#f7fbff] text-navy">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1500px] flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="flex flex-wrap items-center gap-4">
             <RentalPassportLogo className="h-11 w-auto max-w-[210px]" />
             <span className="hidden h-10 w-px bg-slate-200 md:block" />
@@ -71,11 +87,22 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
                 Verified Rental Application
               </p>
               <h1 className="text-xl font-black md:text-2xl">{data.applicant.legalName}</h1>
+              <p className="mt-1 text-sm font-semibold text-slate-600">{data.property.address}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="blue">{data.partner.contextLabel}</Badge>
-            <Badge tone="green">{data.completeness.consentStatus}</Badge>
+            <Button>
+              <Mail className="mr-2 h-4 w-4" />
+              Message Applicant
+            </Button>
+            <Button>
+              <Star className="mr-2 h-4 w-4" />
+              Save Applicant
+            </Button>
+            <Button variant="primary">
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Accept Applicant
+            </Button>
             <Button onClick={closeViewer}>
               <X className="mr-2 h-4 w-4" />
               Close
@@ -84,194 +111,110 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-[1500px] gap-6 px-5 py-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:px-8">
-        <aside className="space-y-5">
-          <Card className="p-5">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-              <ShieldCheck className="h-7 w-7" />
-            </div>
-            <h2 className="mt-4 text-2xl font-black">{data.applicant.legalName}</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-600">
-              Application {data.applicationId}
-            </p>
-            <div className="mt-4 space-y-3 text-sm">
-              <MetaLine label="Property" value={data.property.address} />
-              <MetaLine label="Applied" value={formatDateTime(data.property.appliedAt)} />
-              <MetaLine label="Passport account" value={data.rentalPassportAccountId} />
-              <MetaLine label="Partner reference" value={data.property.partnerPropertyReference} />
-            </div>
-          </Card>
+      <section className="mx-auto max-w-7xl px-5 py-5 lg:px-8">
+        {notice && <Alert tone="success">{notice}</Alert>}
 
-          <Card className="p-5">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-              Partner-safe summary
-            </p>
-            <div className="mt-4 grid gap-3">
-              <SummaryMetric label="Completeness" value={`${data.completeness.percent}%`} />
-              <SummaryMetric label="Unresolved" value={String(summary.unresolved_issue_count)} />
-              <SummaryMetric label="State" value={summary.current_application_state.replaceAll('_', ' ')} />
-            </div>
-            <p className="mt-4 text-xs leading-5 text-slate-600">
-              Partner platforms may display a summary, but Rental Passport displays the authoritative application.
-            </p>
-          </Card>
-
-          <Card className="p-5">
-            <div className="flex items-center gap-3">
-              <LockKeyhole className="h-5 w-5 text-blue-700" />
-              <h2 className="font-black">Session controls</h2>
-            </div>
-            <div className="mt-4 space-y-3 text-sm leading-6 text-slate-700">
-              <p>Token scope: one application, one partner, one landlord user.</p>
-              <p>Expires: {formatDateTime(validation.session.expiresAt)}</p>
-              <p>Mode: {validation.session.mode === 'embed' ? 'Secure embed' : 'New tab'}</p>
-            </div>
-          </Card>
-        </aside>
-
-        <div className="space-y-6">
-          {notice && <Alert tone="success">{notice}</Alert>}
-
-          <Card className="p-6">
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-              <div>
-                <div className="flex flex-wrap gap-2">
-                  <StatusChip status={data.completeness.consentStatus} />
-                  <Badge tone="blue">Read-only review</Badge>
-                  <Badge tone="slate">No final tenancy decision here</Badge>
-                </div>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-                  Application review workspace
-                </h2>
-                <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700">
-                  Review verified facts, unresolved items, consent records, and permitted evidence.
-                  Rental Passport owns the full application; partner platforms receive safe summary metadata.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
-                <p className="text-sm font-black uppercase tracking-wide text-blue-700">Property applied to</p>
-                <h3 className="mt-2 text-xl font-black">{data.property.address}</h3>
-                <div className="mt-4 grid gap-2 text-sm text-blue-950">
-                  <MetaLine label="Move-in" value={formatDate(data.property.desiredMoveIn)} />
-                  <MetaLine label="Lease term" value={data.property.leaseTerm} />
-                  <MetaLine label="Occupants" value={data.property.occupants} />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {data.issues.length > 0 && (
-            <section className="grid gap-3 md:grid-cols-2">
-              {data.issues.map((issue) => (
-                <IssueCard key={issue.id} issue={issue} />
-              ))}
-            </section>
-          )}
-
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {data.statuses.map((item) => (
-              <Card key={item.label} className="p-4">
-                <StatusChip status={item.status} />
-                <h3 className="mt-3 text-lg font-black">{item.label}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{item.detail}</p>
-              </Card>
-            ))}
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="space-y-4">
-              {data.sections.map((section) => (
-                <ApplicationSectionCard key={section.key} section={section} />
-              ))}
-            </div>
-            <aside className="space-y-5">
-              <Card className="p-5">
-                <h2 className="text-xl font-black">Applicant information</h2>
-                <div className="mt-4 space-y-3 text-sm">
-                  <MetaLine label="Legal name" value={data.applicant.legalName} />
-                  <MetaLine label="Preferred name" value={data.applicant.preferredName} />
-                  <MetaLine label="Email" value={data.applicant.email} />
-                  <MetaLine label="Phone" value={data.applicant.phone} />
-                  <MetaLine label="Date of birth" value={formatDate(data.applicant.dateOfBirth)} />
-                  <MetaLine label="Current address" value={data.applicant.currentAddress} />
-                  <MetaLine label="Pets" value={data.property.pets} />
-                  <MetaLine label="Smoking" value={data.property.smoking} />
-                  <MetaLine label="Parking" value={data.property.parking} />
-                  <MetaLine label="Emergency contact" value={data.property.emergencyContact} />
-                </div>
-              </Card>
-
-              <Card className="p-5">
-                <h2 className="text-xl font-black">Landlord actions</h2>
-                <div className="mt-4 grid gap-3">
-                  <ActionButton label="Mark reviewed" icon={<CheckCircle2 className="h-4 w-4" />} onClick={() => requestAction('mark_reviewed')} />
-                  <ActionButton label="Request missing information" icon={<MessageSquare className="h-4 w-4" />} onClick={() => requestAction('request_missing_information')} />
-                  <ActionButton label="Request re-verification" icon={<RefreshCcw className="h-4 w-4" />} onClick={() => requestAction('request_reverification')} />
-                  <ActionButton label="Request updated document" icon={<FileText className="h-4 w-4" />} onClick={() => requestAction('request_updated_document')} />
-                </div>
-                <p className="mt-4 text-xs leading-5 text-slate-600">
-                  Approve, decline, waitlist, lease creation, and tenancy creation stay in the partner platform.
-                </p>
-              </Card>
-
-              <Card className="p-5">
-                <h2 className="text-xl font-black">Downloads</h2>
-                <div className="mt-4 grid gap-3">
-                  <ActionButton label="Standard application" icon={<Download className="h-4 w-4" />} onClick={() => downloadText('standard-application.txt', buildApplicationDownload(data.applicationId))} />
-                  <ActionButton label="Verification summary" icon={<Download className="h-4 w-4" />} onClick={() => downloadText('verification-summary.json', JSON.stringify(summary, null, 2))} />
-                  <ActionButton label="Permitted documents list" icon={<Download className="h-4 w-4" />} onClick={() => downloadText('permitted-documents.txt', buildDocumentDownload(data.documents))} />
-                </div>
-              </Card>
-            </aside>
-          </section>
-
-          <section className="grid gap-6 lg:grid-cols-2">
+        {selectedSection ? (
+          <SectionDetail
+            applicantName={data.applicant.legalName}
+            requested={requestedSections.has(selectedSection.key)}
+            section={selectedSection}
+            onBack={() => setSelectedSectionKey(null)}
+            onRequest={() => requestAction(selectedSection)}
+          />
+        ) : (
+          <div className="space-y-4">
             <Card className="p-5">
-              <h2 className="text-xl font-black">Documents</h2>
-              <div className="mt-4 space-y-3">
-                {data.documents.map((document) => (
-                  <DocumentRow key={document.id} document={document} />
-                ))}
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${isVerifiedPassport ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'}`}>
+                    {isVerifiedPassport ? <ShieldCheck className="h-8 w-8" /> : <FileText className="h-8 w-8" />}
+                  </div>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">
+                      Rental Passport
+                    </p>
+                    <h2 className="mt-1 text-4xl font-black tracking-tight">{data.applicant.legalName}</h2>
+                    <p className="mt-2 text-sm font-semibold text-slate-700">{data.property.address}</p>
+                    <div className="mt-3 flex flex-wrap gap-3 text-xs font-bold text-slate-500">
+                      <span>Applied {formatDateTime(data.property.appliedAt)}</span>
+                      <span>Passport {data.applicationId}</span>
+                      <span>Expires {formatDateTime(validation.session.expiresAt)}</span>
+                      <span>{data.partner.contextLabel}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 lg:w-[320px]">
+                  <p className="text-xs font-black uppercase tracking-wide text-blue-700">Property applied to</p>
+                  <h3 className="mt-2 text-xl font-black">{data.property.address}</h3>
+                  <div className="mt-3 grid gap-2 text-sm">
+                    <MetaLine label="Move-in" value={formatDate(data.property.desiredMoveIn)} />
+                    <MetaLine label="Lease term" value={data.property.leaseTerm} />
+                    <MetaLine label="Occupants" value={data.property.occupants} />
+                  </div>
+                </div>
               </div>
             </Card>
-            <Card className="p-5">
-              <h2 className="text-xl font-black">Declaration, consent, and audit</h2>
-              <div className="mt-4 space-y-4">
-                {data.declarations.map((item) => (
-                  <MetaLine key={item.label} label={item.label} value={formatDateTime(item.acceptedAt)} />
-                ))}
-              </div>
-              <div className="mt-6 border-t border-slate-200 pt-4">
-                {data.audit.map((item) => (
-                  <div key={`${item.label}-${item.timestamp}`} className="mb-3 flex gap-3 text-sm">
-                    <Clock className="mt-0.5 h-4 w-4 flex-none text-blue-700" />
-                    <p>
-                      <strong>{item.label}</strong>
-                      <span className="block text-slate-600">{formatDateTime(item.timestamp)} by {item.actor}</span>
+
+            <section className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+              <Card className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <ShieldCheck className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black">{data.completeness.percent}% Complete</h2>
+                    <p className="mt-1 text-sm font-black text-slate-700">
+                      {isVerifiedPassport ? 'Verified Passport' : 'Not Verified'}
                     </p>
                   </div>
+                </div>
+                <div className="mt-5 h-2 rounded-full bg-slate-100">
+                  <div className="h-2 rounded-full bg-blue-600" style={{ width: `${data.completeness.percent}%` }} />
+                </div>
+                <p className="mt-4 text-sm leading-6 text-slate-700">
+                  {data.completeness.missingItems > 0
+                    ? 'Some application information is still missing.'
+                    : 'All requested application sections have been provided.'}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  This passport has been independently reviewed by Rental Passport. Verification means the application package was checked, not that the tenant is approved or guaranteed.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Button>
+                    <Download className="mr-2 h-4 w-4" />
+                    Standard Application
+                  </Button>
+                  <Button>
+                    <Download className="mr-2 h-4 w-4" />
+                    Verification Summary
+                  </Button>
+                </div>
+              </Card>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {sections.map((section) => (
+                  <SectionSummaryCard
+                    key={section.key}
+                    requested={requestedSections.has(section.key)}
+                    section={section}
+                    onOpen={() => setSelectedSectionKey(section.key)}
+                  />
                 ))}
               </div>
-            </Card>
-          </section>
+            </section>
 
-          <Card className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="font-black">Return to partner platform</h2>
-              <p className="mt-1 text-sm text-slate-600">Use the partner return action when embedded, or open the partner application in a new tab.</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={closeViewer}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Return
-              </Button>
-              <Button onClick={() => window.open(data.partner.returnUrl, '_blank', 'noopener,noreferrer')}>
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Open partner
-              </Button>
-            </div>
-          </Card>
-        </div>
+            {data.issues.length > 0 && (
+              <Alert tone="info" title={data.issues[0].title}>
+                {data.issues[0].detail}
+              </Alert>
+            )}
+
+            <Alert tone="info">
+              Completeness shows whether information was supplied. Verification shows whether Rental Passport independently confirmed it. Sensitive source documents are not downloadable by default.
+            </Alert>
+          </div>
+        )}
       </section>
     </main>
   );
@@ -297,35 +240,208 @@ function AccessDenied({ title, message }: { title: string; message: string }) {
   );
 }
 
-function ApplicationSectionCard({ section }: { section: PartnerApplicationSection }) {
+function SectionSummaryCard({
+  section,
+  requested,
+  onOpen,
+}: {
+  section: ViewerSection;
+  requested: boolean;
+  onOpen: () => void;
+}) {
   return (
-    <details className="group rounded-xl border border-slate-200 bg-white p-5 shadow-soft" open={section.key === 'summary'}>
-      <summary className="flex cursor-pointer list-none flex-col gap-3 md:flex-row md:items-start md:justify-between">
+    <button
+      className="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-soft transition hover:border-blue-200 hover:bg-blue-50/40"
+      onClick={onOpen}
+    >
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <StatusChip status={section.status} />
-          <h2 className="mt-3 text-2xl font-black">{section.title}</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">{section.summary}</p>
+          <StatusChip status={requested ? 'Pending' : section.verificationStatus} label={requested ? 'Requested' : section.completenessStatus} />
+          <h3 className="mt-3 text-lg font-black">{section.title}</h3>
         </div>
-        <span className="text-sm font-bold text-blue-700 group-open:hidden">Expand</span>
-        <span className="hidden text-sm font-bold text-blue-700 group-open:inline">Collapse</span>
-      </summary>
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
-        {section.evidence.map((item) => (
-          <div key={`${section.key}-${item.label}`} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs font-black uppercase tracking-wide text-slate-500">{item.label}</p>
-            <p className="mt-1 font-semibold text-slate-900">{item.value}</p>
-            <div className="mt-3">
-              <StatusChip status={item.status} />
-            </div>
-          </div>
-        ))}
+        <ChevronRight className="mt-1 h-5 w-5 text-slate-400" />
       </div>
-      <p className="mt-4 text-xs font-semibold text-slate-500">Last updated {formatDateTime(section.lastUpdated)}</p>
-    </details>
+      <p className="mt-3 min-h-12 text-sm leading-6 text-slate-700">{section.summary}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Badge tone="blue">{section.completenessStatus}</Badge>
+        <StatusChip status={section.verificationStatus} />
+      </div>
+    </button>
   );
 }
 
-function StatusChip({ status }: { status: VerificationDisplayStatus }) {
+function SectionDetail({
+  applicantName,
+  section,
+  requested,
+  onBack,
+  onRequest,
+}: {
+  applicantName: string;
+  section: ViewerSection;
+  requested: boolean;
+  onBack: () => void;
+  onRequest: () => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <Button onClick={onBack}>
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Passport
+      </Button>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <Card className="p-6">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">{applicantName}</p>
+          <h2 className="mt-2 text-3xl font-black">{section.title}</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-700">{section.summary}</p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Badge tone="blue">{section.completenessStatus}</Badge>
+            <StatusChip status={section.verificationStatus} />
+            <Badge tone="slate">Updated {formatDateTime(section.lastUpdated)}</Badge>
+          </div>
+          <h3 className="mt-7 text-xl font-black">Supplied information</h3>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {section.suppliedInformation.map((item) => (
+              <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <MetaLine label={item.label} value={item.value} />
+                <div className="mt-3">
+                  <StatusChip status={item.status} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+            <div className="flex items-center gap-3">
+              <Eye className="h-5 w-5 text-blue-700" />
+              <h3 className="font-black">Verification explanation</h3>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{section.verificationExplanation}</p>
+          </div>
+        </Card>
+        <aside className="space-y-5">
+          <Card className="p-5">
+            <h3 className="text-xl font-black">Supporting documents</h3>
+            <div className="mt-4 space-y-3">
+              {section.documents.length > 0 ? (
+                section.documents.map((document) => (
+                  <div key={document.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                    <p className="font-black">{document.name}</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {document.status} - {document.access.replaceAll('_', ' ')}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                  No permitted supporting documents are available for this section.
+                </p>
+              )}
+            </div>
+            <p className="mt-4 text-xs leading-5 text-slate-600">Sensitive source documents are not downloadable by default.</p>
+          </Card>
+          <Card className="p-5">
+            <h3 className="text-xl font-black">Request information</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              Ask the tenant for missing, updated, or reverified information for this section.
+            </p>
+            <Button className="mt-4 w-full" variant={requested ? 'secondary' : 'primary'} onClick={onRequest} disabled={requested}>
+              {requested ? 'Requested' : section.requestLabel}
+            </Button>
+          </Card>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function createViewerSections(
+  rawSections: PartnerApplicationSection[],
+  documents: PartnerApplicationDocument[],
+): ViewerSection[] {
+  const byKey = (key: string) => rawSections.find((section) => section.key === key);
+  const documentMatch = (terms: string[]) =>
+    documents.filter((document) => terms.some((term) => document.category.toLowerCase().includes(term) || document.name.toLowerCase().includes(term)));
+
+  const makeSection = (
+    key: string,
+    title: string,
+    source: PartnerApplicationSection | undefined,
+    requestLabel: string,
+    documentTerms: string[],
+    fallbackSummary: string,
+    verificationExplanation: string,
+  ): ViewerSection => ({
+    key,
+    title,
+    summary: source?.summary ?? fallbackSummary,
+    completenessStatus: source?.status === 'Missing' ? 'Missing' : source?.status === 'Needs review' ? 'Needs Review' : source?.status?.includes('Verified') ? 'Verified' : 'Provided',
+    verificationStatus: source?.status ?? 'Missing',
+    requestLabel,
+    suppliedInformation: source?.evidence ?? [],
+    documents: documentMatch(documentTerms),
+    verificationExplanation,
+    lastUpdated: source?.lastUpdated ?? new Date().toISOString(),
+  });
+
+  return [
+    makeSection(
+      'identity',
+      'Tenant Identity',
+      byKey('applicant'),
+      'Request Identity Confirmation',
+      ['identity', 'id'],
+      'Identity information has been supplied by the applicant.',
+      'Rental Passport reviewed identity information and account contact checks. Full ID documents are not displayed by default.',
+    ),
+    makeSection(
+      'employment-income',
+      'Employment & Income',
+      byKey('employment-income'),
+      'Request Updated Employment Information',
+      ['employment', 'income', 'pay'],
+      'Employment details and supporting documents have been supplied.',
+      'Rental Passport independently verified employment using employer confirmation, company contact/domain review, pay stub review, and employment letter review.',
+    ),
+    makeSection(
+      'rental-history',
+      'Rental History',
+      byKey('rental-history'),
+      'Request Additional Rental History',
+      ['lease', 'rental', 'payment'],
+      'Rental history has been supplied by the applicant.',
+      'Rental Passport reviewed lease records and direct landlord/property manager confirmation.',
+    ),
+    makeSection(
+      'references',
+      'References',
+      byKey('references'),
+      'Request Another Reference',
+      ['reference'],
+      'References have been supplied by the applicant.',
+      'Rental Passport contacted references directly and recorded structured responses.',
+    ),
+    makeSection(
+      'credit',
+      'Credit',
+      byKey('credit'),
+      'Request Credit Report',
+      ['credit'],
+      'No credit report has been provided.',
+      'Rental Passport reviewed a tenant-consented credit report and shares only the relevant summary.',
+    ),
+    makeSection(
+      'documents',
+      'Documents / Application Information',
+      byKey('verification-fraud'),
+      'Request Updated Document',
+      ['bank', 'document'],
+      'Supporting application documents are available according to tenant permissions.',
+      'Rental Passport checks document consistency and exposes only permitted document views.',
+    ),
+  ];
+}
+
+function StatusChip({ status, label }: { status: VerificationDisplayStatus; label?: string }) {
   const tone =
     status === 'Verified' || status === 'Verified directly' || status === 'Verified by document'
       ? 'green'
@@ -334,64 +450,11 @@ function StatusChip({ status }: { status: VerificationDisplayStatus }) {
         : status === 'Unable to verify' || status === 'Expired' || status === 'Missing'
           ? 'red'
           : 'slate';
-  const Icon = tone === 'green' ? BadgeCheck : tone === 'orange' ? AlertTriangle : tone === 'red' ? Flag : FileText;
   return (
     <Badge tone={tone} className="items-center gap-1">
-      <Icon className="h-3 w-3" />
-      {status}
+      {tone === 'green' && <BadgeCheck className="h-3 w-3" />}
+      {label ?? status}
     </Badge>
-  );
-}
-
-function IssueCard({ issue }: { issue: PartnerApplicationIssue }) {
-  return (
-    <Card className="border-orange-200 bg-orange-50 p-5">
-      <div className="flex gap-3">
-        <AlertTriangle className="mt-1 h-5 w-5 flex-none text-orange-700" />
-        <div>
-          <p className="text-xs font-black uppercase tracking-wide text-orange-800">{issue.severity.replaceAll('_', ' ')}</p>
-          <h3 className="mt-1 text-lg font-black text-orange-950">{issue.title}</h3>
-          <p className="mt-2 text-sm leading-6 text-orange-950">{issue.detail}</p>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function DocumentRow({ document }: { document: PartnerApplicationDocument }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-black">{document.name}</h3>
-          <p className="mt-1 text-sm text-slate-600">{document.category}</p>
-        </div>
-        <StatusChip status={document.status} />
-      </div>
-      <div className="mt-3 grid gap-2 text-sm md:grid-cols-3">
-        <MetaLine label="Uploaded" value={formatDate(document.uploadedAt)} />
-        <MetaLine label="Expiry" value={document.expiresAt ? formatDate(document.expiresAt) : 'Not set'} />
-        <MetaLine label="Access" value={document.access.replaceAll('_', ' ')} />
-      </div>
-    </div>
-  );
-}
-
-function ActionButton({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {
-  return (
-    <button className="flex w-full items-center justify-center rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-black text-blue-700 hover:bg-blue-50" onClick={onClick}>
-      <span className="mr-2">{icon}</span>
-      {label}
-    </button>
-  );
-}
-
-function SummaryMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3">
-      <p className="text-xs font-black uppercase text-slate-500">{label}</p>
-      <p className="mt-1 font-black capitalize">{value}</p>
-    </div>
   );
 }
 
@@ -410,34 +473,4 @@ function formatDate(value: string) {
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString();
-}
-
-function downloadText(filename: string, text: string) {
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
-function buildApplicationDownload(applicationId: string) {
-  return [
-    'Rental Passport Standard Application Package',
-    `Application ID: ${applicationId}`,
-    'Applicant: Kathryn Casey',
-    'Property: 123 Maple St, Unit 1204, Toronto, ON',
-    'Status: Complete with one optional document item needing review',
-    '',
-    'This demo package contains safe summary data only. Production downloads must enforce tenant consent, document permissions, watermarking, expiry, and audit logs.',
-  ].join('\n');
-}
-
-function buildDocumentDownload(documents: PartnerApplicationDocument[]) {
-  return documents
-    .map((document) => `${document.name} | ${document.category} | ${document.status} | ${document.access}`)
-    .join('\n');
 }
