@@ -46,6 +46,7 @@ import {
   LandlordPassportPage,
   LandlordSecureAccessPage,
 } from '@/features/landlord/pages/LandlordPages';
+import { PartnerApplicationViewerPage } from '@/features/partner/pages/PartnerApplicationViewerPage';
 import { InvestorDemoPage, RentalPassportSecureViewerPage } from '@/features/demo/pages/InvestorDemoPage';
 import { PricingPage } from '@/features/pricing/pages/PricingPage';
 import { RentalHistoryPage } from '@/features/rentalHistory/pages/RentalHistoryPage';
@@ -133,6 +134,11 @@ function AppRoutes() {
   const navigate = (path: string) => setRoute(path);
 
   if (auth.loading) return <LoadingScreen />;
+
+  const partnerApplicationMatch = pathname.match(/^\/partner\/application\/([^/]+)$/);
+  if (partnerApplicationMatch) {
+    return <PartnerApplicationViewerPage applicationId={partnerApplicationMatch[1]} />;
+  }
 
   if (authRoutes.has(pathname)) {
     return (
