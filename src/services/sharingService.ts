@@ -6,6 +6,9 @@ import type {
   LandlordApplication,
   LandlordApplicationDetail,
   LandlordApplicationStatus,
+  LandlordInformationRequest,
+  LandlordPassportSection,
+  LandlordPassportVerificationState,
   PassportShare,
   SecureInviteState,
   ShareAccessEvent,
@@ -194,7 +197,7 @@ export async function listLandlordApplications(user: User): Promise<LandlordAppl
 export async function getLandlordApplicationDetail(user: User, applicationId: string): Promise<LandlordApplicationDetail> {
   const email = user.email?.toLowerCase();
   if (!email) throw new Error('A verified email is required.');
-  if (!supabase) return createDemoApplicationDetail(email);
+  if (!supabase) return createDemoApplicationDetail(email, applicationId);
 
   const { data: application, error } = await supabase.from('landlord_applications').select('*').eq('id', applicationId).eq('landlord_email', email).single();
   if (error) throw error;
@@ -215,16 +218,19 @@ export async function getLandlordApplicationDetail(user: User, applicationId: st
 
   await logApplicationAccess(user, application as LandlordApplication, 'passport_viewed', null, 'Passport summary viewed.');
 
+  const presentationSections = ((sections.data ?? []) as Array<{ section_key: PassportSectionKey; status: string; verification_state: string; progress: number }>).map((section) =>
+    createSectionPresentation(section.section_key, applicationId, {
+      progress: section.progress,
+      status: section.status,
+      verificationState: section.verification_state,
+    }),
+  );
+
   return {
     application: application as LandlordApplication,
-    sections: ((sections.data ?? []) as Array<{ section_key: PassportSectionKey; status: string; verification_state: string; progress: number }>).map((section) => ({
-      key: section.section_key,
-      name: sectionName(section.section_key),
-      status: section.status,
-      verification_state: section.verification_state,
-      progress: section.progress,
-      route: `/landlord/applications/${applicationId}/${sectionRoute(section.section_key)}`,
-    })),
+    passport: createPassportPresentation(application as LandlordApplication, presentationSections),
+    sections: presentationSections,
+    informationRequests: [],
     accessLogs: (logs.data ?? []) as ShareAccessLog[],
   };
 }
@@ -262,6 +268,54 @@ export async function updateLandlordApplicationStatus(user: User, applicationId:
   };
   await logApplicationAccess(user, application as LandlordApplication, eventMap[status], null, `Application marked ${status}.`);
   await recordPassportActivity(application.passport_id, user.id, eventMap[status] as PassportActivityEvent, `Application marked ${status}.`);
+}
+
+export async function requestLandlordInformation(
+  user: User,
+  applicationId: string,
+  sectionKey: PassportSectionKey,
+  requestedItem: string,
+  message: string,
+): Promise<LandlordInformationRequest> {
+  const email = user.email?.toLowerCase();
+  if (!email) throw new Error('A verified email is required.');
+  if (!requestedItem.trim() || !message.trim()) throw new Error('Requested item and message are required.');
+
+  const request: LandlordInformationRequest = {
+    id: `request-${sectionKey}-${Date.now()}`,
+    landlord_application_id: applicationId,
+    section_key: sectionKey,
+    requested_item: requestedItem.trim(),
+    message: message.trim(),
+    status: 'requested',
+    created_at: new Date().toISOString(),
+  };
+
+  if (!supabase) return request;
+
+  const { data: application, error } = await supabase
+    .from('landlord_applications')
+    .select('*')
+    .eq('id', applicationId)
+    .eq('landlord_email', email)
+    .single();
+  if (error) throw error;
+
+  await logApplicationAccess(
+    user,
+    application as LandlordApplication,
+    'section_viewed',
+    sectionKey,
+    `Information requested: ${request.requested_item}.`,
+  );
+  await recordPassportActivity(
+    String(application.passport_id),
+    user.id,
+    'verification_information_requested',
+    `${sectionName(sectionKey)} request from landlord: ${request.requested_item}.`,
+  );
+
+  return request;
 }
 
 async function logApplicationAccess(user: User, application: LandlordApplication, eventType: ShareAccessEvent, sectionKey: PassportSectionKey | null, description: string) {
@@ -375,23 +429,26 @@ function createDemoShare(userId: string, summary: PassportSummary, input: ShareF
   };
 }
 
-function createDemoApplication(email: string): LandlordApplication {
+function createDemoApplication(email: string, scenario = 'demo-verified'): LandlordApplication {
   const now = new Date().toISOString();
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + 14);
+  const isIncomplete = scenario.includes('incomplete');
+  const isCompleteFree = scenario.includes('complete-free');
+  const isPartial = scenario.includes('partial');
   return {
-    id: 'demo-application',
+    id: scenario === 'demo-application' ? 'demo-application' : scenario,
     passport_share_id: 'demo-share',
     passport_id: 'demo-passport',
     passport_version_id: 'demo-version-1',
     tenant_user_id: 'demo-tenant',
     landlord_email: email,
     landlord_name: 'Greenview Property Management',
-    applicant_name: 'Kathryn',
+    applicant_name: 'Kathryn Casey',
     passport_number: 'RP-7F8A-C3D2',
-    completeness: 100,
-    verification_status: 'Fully verified',
-    property_address: '123 Maple St, Toronto, ON',
+    completeness: isIncomplete ? 67 : 100,
+    verification_status: isIncomplete || isCompleteFree ? 'Not verified' : isPartial ? 'Partially verified' : 'Verified Passport',
+    property_address: '123 Maple St, Unit 1204, Toronto, ON',
     status: 'new',
     received_at: now,
     expires_at: expiry.toISOString(),
@@ -399,18 +456,227 @@ function createDemoApplication(email: string): LandlordApplication {
   };
 }
 
-function createDemoApplicationDetail(email: string): LandlordApplicationDetail {
-  const application = createDemoApplication(email);
+function createDemoApplicationDetail(email: string, scenario = 'demo-verified'): LandlordApplicationDetail {
+  const normalizedScenario = scenario === 'demo-application' ? 'demo-verified' : scenario;
+  const application = createDemoApplication(email, normalizedScenario);
+  const sections = createDemoSections(application.id, normalizedScenario);
   return {
     application,
-    sections: (['identity_confirmation', 'employment', 'credit_report', 'rental_history', 'references'] as PassportSectionKey[]).map((key) => ({
-      key,
-      name: sectionName(key),
-      status: 'verified',
-      verification_state: 'verified',
-      progress: 100,
-      route: `/landlord/applications/${application.id}/${sectionRoute(key)}`,
-    })),
+    passport: createPassportPresentation(application, sections, normalizedScenario),
+    sections,
+    informationRequests: [],
     accessLogs: [],
   };
+}
+
+function createPassportPresentation(
+  application: LandlordApplication,
+  sections: LandlordPassportSection[],
+  scenario = '',
+) {
+  const verifiedSections = sections.filter((section) => section.verificationState === 'Verified').length;
+  const needsReverification = sections.some((section) => section.verificationState === 'Needs Reverification');
+  const verificationState: LandlordPassportVerificationState =
+    application.verification_status.toLowerCase().includes('verified passport') || verifiedSections === sections.length
+      ? 'Verified'
+      : needsReverification || verifiedSections > 0
+        ? 'Partially Verified'
+        : 'Not Verified';
+  const isPaidVerified = verificationState === 'Verified' || scenario.includes('partial');
+  const completenessMessage =
+    application.completeness < 100
+      ? 'Some application information is still missing.'
+      : 'All requested application sections have been provided.';
+  const verificationMessage =
+    verificationState === 'Verified'
+      ? 'This passport has been independently reviewed by Rental Passport.'
+      : verificationState === 'Partially Verified'
+        ? 'Some sections are verified. One or more sections need review before the passport is current.'
+        : 'Information has been supplied by the applicant and has not been independently verified.';
+
+  return {
+    displayName: application.applicant_name,
+    propertyAddress: application.property_address ?? 'Property not specified',
+    applicationDate: application.received_at,
+    passportId: application.passport_number,
+    expiresAt: application.expires_at,
+    completenessPercent: application.completeness,
+    completenessMessage,
+    verificationState,
+    verificationMessage,
+    isPaidVerified,
+    downloadLabels: isPaidVerified ? ['Standard Rental Application', 'Verification Summary'] : ['Standard Rental Application'],
+  };
+}
+
+function createDemoSections(applicationId: string, scenario: string): LandlordPassportSection[] {
+  const baseKeys: PassportSectionKey[] = ['identity_confirmation', 'employment', 'rental_history', 'references', 'credit_report'];
+  return baseKeys.map((key) => {
+    const missing = scenario.includes('incomplete') && (key === 'identity_confirmation' || key === 'credit_report');
+    const partialNeedsReverification = scenario.includes('partial') && key === 'employment';
+    const free = scenario.includes('free');
+    return createSectionPresentation(key, applicationId, {
+      progress: missing ? 0 : 100,
+      status: missing ? 'missing' : 'provided',
+      verificationState: missing ? 'unverified' : free ? 'unverified' : partialNeedsReverification ? 'needs_reverification' : 'verified',
+    });
+  });
+}
+
+function createSectionPresentation(
+  sectionKey: PassportSectionKey,
+  applicationId: string,
+  input: { progress: number; status: string; verificationState: string },
+): LandlordPassportSection {
+  const verified = input.verificationState === 'verified';
+  const needsReverification = input.verificationState === 'needs_reverification';
+  const missing = input.progress === 0 || input.status === 'missing' || input.status === 'not_started';
+  const underReview = input.status === 'under_review' || input.status === 'ready_for_review';
+  const verificationState: LandlordPassportVerificationState = verified
+    ? 'Verified'
+    : needsReverification
+      ? 'Needs Reverification'
+      : underReview
+        ? 'Under Review'
+        : 'Not Verified';
+  const completenessStatus = missing
+    ? 'Missing'
+    : input.progress < 100
+      ? 'Incomplete'
+      : underReview
+        ? 'Under Review'
+        : verified
+          ? 'Verified'
+          : 'Provided';
+  const copy = sectionCopy(sectionKey, completenessStatus, verificationState);
+  const now = new Date().toISOString();
+
+  return {
+    key: sectionKey,
+    name: sectionName(sectionKey),
+    route: `/landlord/applications/${applicationId}/${sectionRoute(sectionKey)}`,
+    completenessStatus,
+    verificationState,
+    progress: input.progress,
+    summary: copy.summary,
+    suppliedInformation: copy.suppliedInformation,
+    permittedDocuments: copy.permittedDocuments,
+    verificationExplanation: copy.verificationExplanation,
+    lastUpdatedAt: missing ? null : now,
+    verificationDate: verified ? now : null,
+    expiresAt: sectionKey === 'credit_report' && verified ? addDaysIso(90) : null,
+    requestActionLabel: copy.requestActionLabel,
+  };
+}
+
+function sectionCopy(
+  sectionKey: PassportSectionKey,
+  completenessStatus: LandlordPassportSection['completenessStatus'],
+  verificationState: LandlordPassportVerificationState,
+) {
+  const missing = completenessStatus === 'Missing';
+  const verified = verificationState === 'Verified';
+  const base: Record<PassportSectionKey, Omit<LandlordPassportSection, 'key' | 'name' | 'route' | 'completenessStatus' | 'verificationState' | 'progress' | 'lastUpdatedAt' | 'verificationDate' | 'expiresAt'>> = {
+    identity_confirmation: {
+      summary: missing
+        ? 'No government ID has been uploaded.'
+        : verified
+          ? 'Identity was confirmed using government-issued ID and account contact checks.'
+          : 'Identity information has been supplied by the applicant.',
+      suppliedInformation: [
+        { label: 'Legal name', value: 'Kathryn Casey' },
+        { label: 'Email confirmation', value: missing ? 'Confirmed account email only' : 'Confirmed' },
+        { label: 'Phone confirmation', value: missing ? 'Not supplied' : 'Confirmed' },
+        { label: 'Government ID', value: missing ? 'No government ID has been uploaded.' : 'Uploaded, hidden by default' },
+      ],
+      permittedDocuments: missing ? [] : [{ name: 'Government ID', status: verified ? 'Verified' : 'Supplied', access: 'Summary only' }],
+      verificationExplanation: verified
+        ? 'Rental Passport reviewed government-issued ID and matched account contact details. The full ID is not displayed by default.'
+        : 'Information supplied by applicant.',
+      requestActionLabel: 'Request Identity Confirmation',
+    },
+    employment: {
+      summary: verified
+        ? 'Employment and income were independently verified.'
+        : 'Employment details and supporting documents have been supplied.',
+      suppliedInformation: [
+        { label: 'Employer', value: 'Tech Solutions Inc.' },
+        { label: 'Position', value: 'Software Engineer' },
+        { label: 'Employment status', value: 'Full-time' },
+        { label: 'Start date', value: 'Apr 15, 2024' },
+        { label: 'Income', value: '$78,000 CAD annually' },
+        { label: 'Pay frequency', value: 'Biweekly' },
+        { label: 'Employer contact', value: verified ? 'Confirmed' : 'Supplied by applicant' },
+      ],
+      permittedDocuments: [
+        { name: 'Pay stub', status: verified ? 'Reviewed' : 'Supplied', access: 'View permitted' },
+        { name: 'Employment letter', status: verified ? 'Reviewed' : 'Supplied', access: 'View permitted' },
+      ],
+      verificationExplanation: verified
+        ? 'Rental Passport independently verified this employment using employer confirmation, company contact/domain review, pay stub review, and employment letter review.'
+        : 'Information supplied by applicant.',
+      requestActionLabel: verificationState === 'Needs Reverification' ? 'Request Reverification' : 'Request Updated Employment Information',
+    },
+    rental_history: {
+      summary: verified
+        ? 'Rental history was confirmed with prior landlord/property manager contacts.'
+        : 'Rental history has been supplied by the applicant.',
+      suppliedInformation: [
+        { label: 'Current rental', value: '123 Maple St, Toronto, ON' },
+        { label: 'Tenancy dates', value: 'May 2023 to present' },
+        { label: 'Monthly rent', value: '$2,150' },
+        { label: 'Landlord confirmation', value: verified ? 'Confirmed' : 'Not independently confirmed' },
+      ],
+      permittedDocuments: [
+        { name: 'Lease document', status: verified ? 'Reviewed' : 'Supplied', access: 'View permitted' },
+        { name: 'Payment history summary', status: verified ? 'Reviewed' : 'Supplied', access: 'Summary only' },
+      ],
+      verificationExplanation: verified
+        ? 'Rental Passport reviewed lease records and direct landlord/property manager confirmation.'
+        : 'Information supplied by applicant.',
+      requestActionLabel: 'Request Additional Rental History',
+    },
+    references: {
+      summary: verified
+        ? 'References were contacted and confirmed.'
+        : 'References have been supplied by the applicant.',
+      suppliedInformation: [
+        { label: 'Previous landlord references', value: verified ? '2 confirmed' : '2 supplied' },
+        { label: 'Professional reference', value: verified ? '1 confirmed' : '1 supplied' },
+        { label: 'Response status', value: verified ? 'Responses received' : 'Pending landlord review' },
+      ],
+      permittedDocuments: [],
+      verificationExplanation: verified
+        ? 'Rental Passport contacted references directly and recorded structured responses.'
+        : 'Information supplied by applicant.',
+      requestActionLabel: 'Request Another Reference',
+    },
+    credit_report: {
+      summary: missing
+        ? 'No credit report has been provided.'
+        : verified
+          ? 'A current credit report was obtained and verified.'
+          : 'A credit report or credit summary has been supplied.',
+      suppliedInformation: [
+        { label: 'Report status', value: missing ? 'No credit report has been provided.' : verified ? 'Verified summary available' : 'Supplied by applicant' },
+        { label: 'Report source', value: missing ? 'Not supplied' : 'SingleKey demo provider' },
+        { label: 'Report date', value: missing ? 'Not supplied' : 'Jul 9, 2026' },
+        { label: 'Credit score', value: missing ? 'Not supplied' : '742' },
+      ],
+      permittedDocuments: missing ? [] : [{ name: 'Credit report summary', status: verified ? 'Verified' : 'Supplied', access: 'Summary only' }],
+      verificationExplanation: verified
+        ? 'Rental Passport reviewed a tenant-consented credit report and shares only the relevant summary.'
+        : missing
+          ? 'No credit report has been provided.'
+          : 'Information supplied by applicant.',
+      requestActionLabel: 'Request Credit Report',
+    },
+  };
+  return base[sectionKey];
+}
+
+function addDaysIso(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
 }

@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   ArrowLeft,
+  BadgeCheck,
   CheckCircle2,
+  ChevronRight,
+  Download,
   Eye,
   FileText,
   LockKeyhole,
@@ -16,20 +19,19 @@ import { Skeleton } from '@/components/feedback/Skeleton';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Avatar } from '@/components/ui/Avatar';
-import { StatusBadge, VerifiedBadge } from '@/components/ui/Badge';
+import { Badge, StatusBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { SignInPage } from '@/features/auth/AuthPages';
-import { LandlordReviewUpsells } from '@/features/landlord/components/LandlordReviewUpsells';
-import { generateLandlordPassportSummary } from '@/services/ai/aiAssistanceService';
 import {
   activateSecureAccess,
   getLandlordApplicationDetail,
   getSecureInvite,
   listLandlordApplications,
   logLandlordSectionView,
+  requestLandlordInformation,
   updateLandlordApplicationStatus,
 } from '@/services/sharingService';
 import type { PassportSectionKey } from '@/types/passport';
@@ -37,6 +39,8 @@ import type {
   LandlordApplication,
   LandlordApplicationDetail,
   LandlordApplicationStatus,
+  LandlordInformationRequest,
+  LandlordPassportSection,
   SecureInviteState,
 } from '@/types/sharing';
 
@@ -215,10 +219,7 @@ export function LandlordApplicationsPage({ onNavigate }: { onNavigate: (path: st
                 <div className="grid gap-3 text-sm md:grid-cols-3 lg:min-w-[430px]">
                   <Metric label="Completeness" value={`${application.completeness}%`} />
                   <Metric label="Verification" value={application.verification_status} />
-                  <Metric
-                    label="Expires"
-                    value={new Date(application.expires_at).toLocaleDateString()}
-                  />
+                  <Metric label="Expires" value={formatDate(application.expires_at)} />
                 </div>
                 <Button
                   variant="primary"
@@ -250,11 +251,15 @@ export function LandlordPassportPage({
   const { user } = useAuth();
   const [detail, setDetail] = useState<LandlordApplicationDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [requests, setRequests] = useState<LandlordInformationRequest[]>([]);
 
   useEffect(() => {
     if (!user) return;
     getLandlordApplicationDetail(user, applicationId)
-      .then(setDetail)
+      .then((nextDetail) => {
+        setDetail(nextDetail);
+        setRequests(nextDetail.informationRequests);
+      })
       .catch((nextError: Error) => setError(nextError.message));
   }, [applicationId, user]);
 
@@ -276,102 +281,103 @@ export function LandlordPassportPage({
         <Skeleton className="h-96 w-full" />
       </PageContainer>
     );
-  const assistance = generateLandlordPassportSummary(detail);
+
+  const passport = detail.passport;
+  const openRequests = new Set(
+    requests.filter((request) => request.status === 'requested').map((request) => request.section_key),
+  );
 
   return (
-    <PageContainer>
-      <PageHeader
-        eyebrow="Shared Passport"
-        title={detail.application.applicant_name}
-        description="Review the verified summary. Sensitive documents are not downloadable."
-        actions={
-          <Button onClick={() => onNavigate('/landlord/applications')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Applications
-          </Button>
-        }
-      />
-      <Card className="p-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-start gap-4">
-            <Avatar name={detail.application.applicant_name} />
-            <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-3xl font-black">{detail.application.applicant_name}</h2>
-                <VerifiedBadge label="Fully Verified" />
+    <main className="min-h-screen bg-[#f7fbff] px-4 py-4 text-navy md:px-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4">
+        <Card className="p-4 md:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <button
+                aria-label="Back to applications"
+                className="mt-1 rounded-full border border-slate-200 p-2 text-slate-700 hover:bg-slate-50"
+                onClick={() => onNavigate('/landlord/applications')}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <Avatar name={passport.displayName} />
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Rental Passport</p>
+                <h1 className="mt-1 text-3xl font-black tracking-tight md:text-4xl">{passport.displayName}</h1>
+                <p className="mt-1 text-sm font-semibold text-slate-700">{passport.propertyAddress}</p>
+                <div className="mt-2 flex flex-wrap gap-3 text-xs font-bold text-slate-500">
+                  <span>Applied {formatDate(passport.applicationDate)}</span>
+                  <span>Passport {passport.passportId}</span>
+                  <span>Expires {formatDate(passport.expiresAt)}</span>
+                </div>
               </div>
-              <p className="mt-2 text-sm font-semibold text-slate-600">
-                Passport ID: {detail.application.passport_number}
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Received {new Date(detail.application.received_at).toLocaleDateString()} · Expires{' '}
-                {new Date(detail.application.expires_at).toLocaleDateString()}
-              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button>
+                <Mail className="mr-2 h-4 w-4" />
+                Message Applicant
+              </Button>
+              <Button onClick={() => action('saved')}>
+                <Star className="mr-2 h-4 w-4" />
+                Save Applicant
+              </Button>
+              <Button variant="primary" onClick={() => action('accepted')}>
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Accept Applicant
+              </Button>
+              <Button variant="danger" onClick={() => action('archived')}>
+                <Archive className="mr-2 h-4 w-4" />
+                Reject
+              </Button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button>
-              <Mail className="mr-2 h-4 w-4" />
-              Message Applicant
-            </Button>
-            <Button onClick={() => action('saved')}>
-              <Star className="mr-2 h-4 w-4" />
-              Save Applicant
-            </Button>
-            <Button variant="primary" onClick={() => action('accepted')}>
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              Accept Applicant
-            </Button>
-            <Button variant="danger" onClick={() => action('archived')}>
-              <Archive className="mr-2 h-4 w-4" />
-              Reject / Archive
-            </Button>
-          </div>
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <Metric label="Passport completeness" value={`${detail.application.completeness}%`} />
-          <Metric label="Verification status" value={detail.application.verification_status} />
-          <Metric label="Application status" value={detail.application.status} />
-        </div>
-      </Card>
-      <Card className="mt-6 p-6">
-        <h2 className="text-xl font-black">Verified Information Summary</h2>
-        <p className="mt-2 leading-7 text-slate-700">{assistance.summary}</p>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {assistance.facts.slice(0, 4).map((fact) => (
-            <p
-              key={fact}
-              className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700"
-            >
-              {fact}
-            </p>
-          ))}
-        </div>
-        <p className="mt-4 text-xs font-semibold text-slate-500">{assistance.limitations[0]}</p>
-      </Card>
-      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-        {detail.sections.map((section) => (
-          <Card key={section.key} className="p-5">
-            <ShieldCheck className="h-8 w-8 text-emerald-700" />
-            <h3 className="mt-4 text-lg font-black">{section.name}</h3>
-            <p className="mt-2 text-sm text-slate-600">{section.progress}% complete</p>
-            <div className="mt-3">
-              <StatusBadge status={section.status} />
+        </Card>
+
+        <section className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+          <Card className="p-5">
+            <div className="flex items-start gap-4">
+              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${passport.isPaidVerified ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'}`}>
+                {passport.isPaidVerified ? <ShieldCheck className="h-7 w-7" /> : <FileText className="h-7 w-7" />}
+              </div>
+              <div>
+                <h2 className="text-3xl font-black">{passport.completenessPercent}% Complete</h2>
+                <p className="mt-1 text-sm font-black text-slate-700">
+                  {passport.isPaidVerified ? 'Verified Passport' : passport.verificationState}
+                </p>
+              </div>
             </div>
-            <Button className="mt-5 w-full" onClick={() => onNavigate(section.route)}>
-              View Details
-            </Button>
+            <div className="mt-5 h-2 rounded-full bg-slate-100">
+              <div className="h-2 rounded-full bg-blue-600" style={{ width: `${passport.completenessPercent}%` }} />
+            </div>
+            <p className="mt-4 text-sm leading-6 text-slate-700">{passport.completenessMessage}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{passport.verificationMessage}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {passport.downloadLabels.map((label) => (
+                <Button key={label}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {label}
+                </Button>
+              ))}
+            </div>
           </Card>
-        ))}
-      </div>
-      <div className="mt-6">
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {detail.sections.map((section) => (
+              <SectionSummaryCard
+                key={section.key}
+                requested={openRequests.has(section.key)}
+                section={section}
+                onOpen={() => onNavigate(section.route)}
+              />
+            ))}
+          </div>
+        </section>
+
         <Alert tone="info">
-          Access is logged and limited to this recipient email. ID, selfie, pay stubs, credit
-          reports, bank records, leases, and reference responses cannot be downloaded.
+          Completeness shows whether information was supplied. Verification shows whether Rental Passport independently confirmed it. Sensitive source documents are not downloadable by default.
         </Alert>
       </div>
-      <LandlordReviewUpsells />
-    </PageContainer>
+    </main>
   );
 }
 
@@ -387,6 +393,8 @@ export function LandlordDetailPage({
   const { user } = useAuth();
   const [detail, setDetail] = useState<LandlordApplicationDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [requestedSections, setRequestedSections] = useState<Set<PassportSectionKey>>(new Set());
 
   useEffect(() => {
     if (!user) return;
@@ -416,73 +424,141 @@ export function LandlordDetailPage({
       </PageContainer>
     );
 
+  const createRequest = async () => {
+    if (!user) return;
+    try {
+      const request = await requestLandlordInformation(
+        user,
+        applicationId,
+        section.key,
+        section.requestActionLabel,
+        `${section.requestActionLabel} requested by landlord from the passport detail page.`,
+      );
+      setRequestedSections((current) => new Set(current).add(request.section_key));
+      setNotice(`${section.requestActionLabel} sent to the tenant.`);
+    } catch (requestError) {
+      setNotice(requestError instanceof Error ? requestError.message : 'Unable to create request.');
+    }
+  };
+
+  const isRequested = requestedSections.has(section.key);
+
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Application Detail"
+        eyebrow={detail.application.applicant_name}
         title={section.name}
-        description="View-only verification detail for this shared application."
+        description={section.summary}
         actions={
           <Button onClick={() => onNavigate(`/landlord/applications/${applicationId}/passport`)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Passport Summary
+            Back to Passport
           </Button>
         }
       />
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      {notice && <Alert tone={notice.includes('sent') ? 'success' : 'error'}>{notice}</Alert>}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Card className="p-6">
           <div className="flex flex-wrap items-center gap-3">
-            <VerifiedBadge
-              label={section.verification_state === 'verified' ? 'Verified' : 'Needs Review'}
-            />
-            <StatusBadge status={section.status} />
+            <PassportStatusBadge label={section.completenessStatus} />
+            <PassportStatusBadge label={section.verificationState} verification />
+            {section.verificationDate && <Badge tone="green">Reviewed {formatDate(section.verificationDate)}</Badge>}
+            {section.expiresAt && <Badge tone="slate">Expires {formatDate(section.expiresAt)}</Badge>}
           </div>
-          <h2 className="mt-5 text-2xl font-black">What was verified</h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <DetailRow label="Section" value={section.name} />
-            <DetailRow
-              label="Verification status"
-              value={section.verification_state.replaceAll('_', ' ')}
-            />
-            <DetailRow label="Completeness" value={`${section.progress}%`} />
-            <DetailRow
-              label="How it was verified"
-              value="Reviewed through Rental Passport verification workflow records."
-            />
+          <h2 className="mt-6 text-xl font-black">Supplied information</h2>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {section.suppliedInformation.map((item) => (
+              <DetailRow key={item.label} label={item.label} value={item.value} />
+            ))}
           </div>
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-center gap-3">
               <Eye className="h-5 w-5 text-blue-700" />
-              <h3 className="font-black">Supporting document viewer placeholder</h3>
+              <h3 className="font-black">Verification explanation</h3>
             </div>
-            <p className="mt-2 text-sm leading-6 text-slate-700">
-              Authorized supporting documents will open in a controlled, view-only session.
-              Downloads are disabled and future watermarking is reserved for the document viewer
-              phase.
-            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{section.verificationExplanation}</p>
           </div>
         </Card>
-        <aside className="space-y-6">
-          <Card className="p-6">
-            <FileText className="h-8 w-8 text-blue-700" />
-            <h2 className="mt-4 text-xl font-black">Audit notice</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-700">
-              This section view is logged for tenant transparency and access control.
-            </p>
-          </Card>
-          <Card className="p-6">
-            <h2 className="text-xl font-black">Allowed downloads</h2>
+        <aside className="space-y-5">
+          <Card className="p-5">
+            <h2 className="text-xl font-black">Supporting documents</h2>
             <div className="mt-4 space-y-3">
-              <Button className="w-full">Application Summary Placeholder</Button>
-              <Button className="w-full">Verification Certificate Placeholder</Button>
+              {section.permittedDocuments.length > 0 ? (
+                section.permittedDocuments.map((document) => (
+                  <div key={document.name} className="rounded-xl border border-slate-200 bg-white p-3">
+                    <p className="font-black">{document.name}</p>
+                    <p className="mt-1 text-sm text-slate-600">{document.status} - {document.access}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                  No permitted supporting documents are available for this section.
+                </p>
+              )}
             </div>
-            <p className="mt-4 text-xs leading-5 text-slate-600">
-              Sensitive source documents are view-only and cannot be downloaded.
+            <p className="mt-4 text-xs leading-5 text-slate-600">Sensitive source documents are not downloadable by default.</p>
+          </Card>
+          <Card className="p-5">
+            <h2 className="text-xl font-black">Request information</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              Ask the tenant for missing, updated, or reverified information for this section.
             </p>
+            <Button className="mt-4 w-full" variant={isRequested ? 'secondary' : 'primary'} onClick={createRequest} disabled={isRequested}>
+              {isRequested ? 'Requested' : section.requestActionLabel}
+            </Button>
           </Card>
         </aside>
       </div>
     </PageContainer>
+  );
+}
+
+function SectionSummaryCard({
+  section,
+  requested,
+  onOpen,
+}: {
+  section: LandlordPassportSection;
+  requested: boolean;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      className="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-soft transition hover:border-blue-200 hover:bg-blue-50/40"
+      onClick={onOpen}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <PassportStatusBadge label={requested ? 'Requested' : section.completenessStatus} />
+          <h3 className="mt-3 text-lg font-black">{section.name}</h3>
+        </div>
+        <ChevronRight className="mt-1 h-5 w-5 text-slate-400" />
+      </div>
+      <p className="mt-3 min-h-12 text-sm leading-6 text-slate-700">{section.summary}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <PassportStatusBadge label={`${section.progress}% Complete`} />
+        <PassportStatusBadge label={section.verificationState} verification />
+      </div>
+    </button>
+  );
+}
+
+function PassportStatusBadge({ label, verification = false }: { label: string; verification?: boolean }) {
+  const lower = label.toLowerCase();
+  const tone = lower.includes('verified')
+    ? 'green'
+    : lower.includes('missing') || lower.includes('expired')
+      ? 'red'
+      : lower.includes('review') || lower.includes('requested') || lower.includes('incomplete')
+        ? 'orange'
+        : lower.includes('provided') || lower.includes('complete')
+          ? 'blue'
+          : 'slate';
+  return (
+    <Badge tone={tone} className="items-center gap-1">
+      {verification && lower.includes('verified') && <BadgeCheck className="h-3 w-3" />}
+      {label}
+    </Badge>
   );
 }
 
@@ -502,4 +578,8 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <p className="mt-1 font-semibold text-slate-800">{value}</p>
     </div>
   );
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString();
 }

@@ -3,8 +3,8 @@ import type { VerificationCaseDetail } from '@/types/verificationPortal';
 import type { AiAssistanceFinding, LandlordAssistanceSummary, ReviewerAssistanceSummary } from '@/types/launchReadiness';
 
 export function generateLandlordPassportSummary(detail: LandlordApplicationDetail): LandlordAssistanceSummary {
-  const verifiedSections = detail.sections.filter((section) => section.verification_state === 'verified');
-  const needsReview = detail.sections.filter((section) => section.verification_state !== 'verified');
+  const verifiedSections = detail.sections.filter((section) => section.verificationState === 'Verified');
+  const needsReview = detail.sections.filter((section) => section.verificationState !== 'Verified');
 
   return {
     summary: `${detail.application.applicant_name} has a Rental Passport that is ${detail.application.completeness}% complete with ${verifiedSections.length} verified section${verifiedSections.length === 1 ? '' : 's'}. This summary explains verified facts only and does not recommend approval or rejection.`,

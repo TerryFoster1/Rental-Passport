@@ -79,15 +79,68 @@ export type LandlordApplication = {
 
 export type LandlordApplicationDetail = {
   application: LandlordApplication;
-  sections: Array<{
-    key: PassportSectionKey;
-    name: string;
-    status: string;
-    verification_state: string;
-    progress: number;
-    route: string;
-  }>;
+  passport: LandlordPassportPresentation;
+  sections: LandlordPassportSection[];
+  informationRequests: LandlordInformationRequest[];
   accessLogs: ShareAccessLog[];
+};
+
+export type LandlordPassportCompletenessState =
+  | 'Missing'
+  | 'Incomplete'
+  | 'Provided'
+  | 'Under Review'
+  | 'Verified'
+  | 'Needs Reverification'
+  | 'Expired';
+
+export type LandlordPassportVerificationState =
+  | 'Not Verified'
+  | 'Partially Verified'
+  | 'Under Review'
+  | 'Verified'
+  | 'Needs Reverification'
+  | 'Expired';
+
+export type LandlordPassportPresentation = {
+  displayName: string;
+  propertyAddress: string;
+  applicationDate: string;
+  passportId: string;
+  expiresAt: string;
+  completenessPercent: number;
+  completenessMessage: string;
+  verificationState: LandlordPassportVerificationState;
+  verificationMessage: string;
+  isPaidVerified: boolean;
+  downloadLabels: string[];
+};
+
+export type LandlordPassportSection = {
+  key: PassportSectionKey;
+  name: string;
+  route: string;
+  completenessStatus: LandlordPassportCompletenessState;
+  verificationState: LandlordPassportVerificationState;
+  progress: number;
+  summary: string;
+  suppliedInformation: Array<{ label: string; value: string }>;
+  permittedDocuments: Array<{ name: string; status: string; access: string }>;
+  verificationExplanation: string;
+  lastUpdatedAt: string | null;
+  verificationDate: string | null;
+  expiresAt: string | null;
+  requestActionLabel: string;
+};
+
+export type LandlordInformationRequest = {
+  id: string;
+  landlord_application_id: string;
+  section_key: PassportSectionKey;
+  requested_item: string;
+  message: string;
+  status: 'requested' | 'resolved';
+  created_at: string;
 };
 
 export type SecureInviteState =
