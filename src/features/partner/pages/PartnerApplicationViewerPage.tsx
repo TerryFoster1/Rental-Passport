@@ -249,6 +249,7 @@ function SectionSummaryCard({
   requested: boolean;
   onOpen: () => void;
 }) {
+  const outcome = sectionOutcome(section, requested);
   return (
     <button
       className="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-soft transition hover:border-blue-200 hover:bg-blue-50/40"
@@ -256,16 +257,12 @@ function SectionSummaryCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <StatusChip status={requested ? 'Pending' : section.verificationStatus} label={requested ? 'Requested' : section.completenessStatus} />
+          <SectionOutcomeBadge outcome={outcome} />
           <h3 className="mt-3 text-lg font-black">{section.title}</h3>
         </div>
         <ChevronRight className="mt-1 h-5 w-5 text-slate-400" />
       </div>
       <p className="mt-3 min-h-12 text-sm leading-6 text-slate-700">{section.summary}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Badge tone="blue">{section.completenessStatus}</Badge>
-        <StatusChip status={section.verificationStatus} />
-      </div>
     </button>
   );
 }
@@ -295,8 +292,7 @@ function SectionDetail({
           <h2 className="mt-2 text-3xl font-black">{section.title}</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-700">{section.summary}</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Badge tone="blue">{section.completenessStatus}</Badge>
-            <StatusChip status={section.verificationStatus} />
+            <SectionOutcomeBadge outcome={sectionOutcome(section, requested)} />
             <Badge tone="slate">Updated {formatDateTime(section.lastUpdated)}</Badge>
           </div>
           <h3 className="mt-7 text-xl font-black">Supplied information</h3>
@@ -351,6 +347,32 @@ function SectionDetail({
         </aside>
       </div>
     </div>
+  );
+}
+
+function sectionOutcome(section: ViewerSection, requested: boolean): 'Requested' | 'Needs Review' | 'Missing' | 'Verified' | 'Provided' {
+  if (requested) return 'Requested';
+  if (section.completenessStatus === 'Needs Review' || section.verificationStatus === 'Needs review') return 'Needs Review';
+  if (section.completenessStatus === 'Missing' || section.verificationStatus === 'Missing') return 'Missing';
+  if (section.verificationStatus === 'Verified' || section.verificationStatus === 'Verified directly' || section.verificationStatus === 'Verified by document') return 'Verified';
+  return 'Provided';
+}
+
+function SectionOutcomeBadge({ outcome }: { outcome: ReturnType<typeof sectionOutcome> }) {
+  const tone =
+    outcome === 'Verified'
+      ? 'blue'
+      : outcome === 'Needs Review' || outcome === 'Requested'
+        ? 'orange'
+        : outcome === 'Missing'
+          ? 'red'
+          : 'slate';
+
+  return (
+    <Badge tone={tone} className="items-center gap-1">
+      {outcome === 'Verified' && <ShieldCheck className="h-3.5 w-3.5" />}
+      {outcome}
+    </Badge>
   );
 }
 

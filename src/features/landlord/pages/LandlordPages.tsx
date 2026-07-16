@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   ArrowLeft,
-  BadgeCheck,
   CheckCircle2,
   ChevronRight,
   Download,
@@ -522,6 +521,7 @@ function SectionSummaryCard({
   requested: boolean;
   onOpen: () => void;
 }) {
+  const outcome = landlordSectionOutcome(section, requested);
   return (
     <button
       className="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-soft transition hover:border-blue-200 hover:bg-blue-50/40"
@@ -529,24 +529,30 @@ function SectionSummaryCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <PassportStatusBadge label={requested ? 'Requested' : section.completenessStatus} />
+          <PassportStatusBadge label={outcome} verification={outcome === 'Verified'} />
           <h3 className="mt-3 text-lg font-black">{section.name}</h3>
         </div>
         <ChevronRight className="mt-1 h-5 w-5 text-slate-400" />
       </div>
       <p className="mt-3 min-h-12 text-sm leading-6 text-slate-700">{section.summary}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <PassportStatusBadge label={`${section.progress}% Complete`} />
-        <PassportStatusBadge label={section.verificationState} verification />
-      </div>
     </button>
   );
+}
+
+function landlordSectionOutcome(section: LandlordPassportSection, requested: boolean) {
+  if (requested) return 'Requested';
+  if (section.completenessStatus === 'Needs Reverification' || section.verificationState === 'Needs Reverification') return 'Needs Reverification';
+  if (section.completenessStatus === 'Under Review' || section.verificationState === 'Under Review') return 'Under Review';
+  if (section.completenessStatus === 'Missing') return 'Missing';
+  if (section.verificationState === 'Verified') return 'Verified';
+  if (section.completenessStatus === 'Incomplete') return 'Incomplete';
+  return 'Provided';
 }
 
 function PassportStatusBadge({ label, verification = false }: { label: string; verification?: boolean }) {
   const lower = label.toLowerCase();
   const tone = lower.includes('verified')
-    ? 'green'
+    ? 'blue'
     : lower.includes('missing') || lower.includes('expired')
       ? 'red'
       : lower.includes('review') || lower.includes('requested') || lower.includes('incomplete')
@@ -556,7 +562,7 @@ function PassportStatusBadge({ label, verification = false }: { label: string; v
           : 'slate';
   return (
     <Badge tone={tone} className="items-center gap-1">
-      {verification && lower.includes('verified') && <BadgeCheck className="h-3 w-3" />}
+      {verification && lower.includes('verified') && <ShieldCheck className="h-3.5 w-3.5" />}
       {label}
     </Badge>
   );
