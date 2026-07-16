@@ -126,11 +126,11 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
           <div className="space-y-4">
             <Card className="p-5">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                <div className="flex items-start gap-4">
+                <div className="flex min-w-0 flex-1 items-start gap-4">
                   <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${isVerifiedPassport ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'}`}>
                     {isVerifiedPassport ? <ShieldCheck className="h-8 w-8" /> : <FileText className="h-8 w-8" />}
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">
                       Rental Passport
                     </p>
@@ -141,6 +141,23 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
                       <span>Passport {data.applicationId}</span>
                       <span>Expires {formatDateTime(validation.session.expiresAt)}</span>
                       <span>{data.partner.contextLabel}</span>
+                    </div>
+                    <div className="mt-7 max-w-3xl">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-3xl font-black">{data.completeness.percent}% Complete</h3>
+                        <Badge tone={isVerifiedPassport ? 'blue' : 'slate'} className="items-center gap-1">
+                          {isVerifiedPassport && <ShieldCheck className="h-3.5 w-3.5" />}
+                          {isVerifiedPassport ? 'Verified Passport' : 'Not Verified'}
+                        </Badge>
+                      </div>
+                      <div className="mt-4 h-2 rounded-full bg-slate-100">
+                        <div className="h-2 rounded-full bg-blue-600" style={{ width: `${data.completeness.percent}%` }} />
+                      </div>
+                      <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-700">
+                        {data.completeness.missingItems > 0
+                          ? 'Some application information is still missing.'
+                          : 'All requested application sections have been provided.'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -156,31 +173,12 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
               </div>
             </Card>
 
-            <section className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
-              <Card className="p-5">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                    <ShieldCheck className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-black">{data.completeness.percent}% Complete</h2>
-                    <p className="mt-1 text-sm font-black text-slate-700">
-                      {isVerifiedPassport ? 'Verified Passport' : 'Not Verified'}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-5 h-2 rounded-full bg-slate-100">
-                  <div className="h-2 rounded-full bg-blue-600" style={{ width: `${data.completeness.percent}%` }} />
-                </div>
-                <p className="mt-4 text-sm leading-6 text-slate-700">
-                  {data.completeness.missingItems > 0
-                    ? 'Some application information is still missing.'
-                    : 'All requested application sections have been provided.'}
+            <section className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="max-w-3xl text-sm leading-6 text-slate-700">
+                  Verification means the application package was checked by Rental Passport, not that the tenant is approved or guaranteed.
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">
-                  This passport has been independently reviewed by Rental Passport. Verification means the application package was checked, not that the tenant is approved or guaranteed.
-                </p>
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button>
                     <Download className="mr-2 h-4 w-4" />
                     Standard Application
@@ -190,8 +188,7 @@ export function PartnerApplicationViewerPage({ applicationId }: { applicationId:
                     Verification Summary
                   </Button>
                 </div>
-              </Card>
-
+              </div>
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {sections.map((section) => (
                   <SectionSummaryCard
