@@ -49,6 +49,7 @@ import {
 import { PartnerApplicationViewerPage } from '@/features/partner/pages/PartnerApplicationViewerPage';
 import { InvestorDemoPage, RentalPassportSecureViewerPage } from '@/features/demo/pages/InvestorDemoPage';
 import { PricingPage } from '@/features/pricing/pages/PricingPage';
+import { PostApplicationVerificationRequestPage } from '@/features/verificationRequest/pages/PostApplicationVerificationRequestPage';
 import { RentalHistoryPage } from '@/features/rentalHistory/pages/RentalHistoryPage';
 import { ReferencesPage } from '@/features/references/pages/ReferencesPage';
 import { TenantSharePage } from '@/features/sharing/pages/TenantSharePage';
@@ -138,6 +139,11 @@ function AppRoutes() {
   const partnerApplicationMatch = pathname.match(/^\/partner\/application\/([^/]+)$/);
   if (partnerApplicationMatch) {
     return <PartnerApplicationViewerPage applicationId={partnerApplicationMatch[1]} />;
+  }
+
+  const verificationRequestMatch = pathname.match(/^\/verification-request\/([^/]+)$/);
+  if (verificationRequestMatch) {
+    return <PostApplicationVerificationRequestPage token={verificationRequestMatch[1]} />;
   }
 
   if (authRoutes.has(pathname)) {

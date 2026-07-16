@@ -23,6 +23,9 @@ export const apiV1Endpoints: ApiEndpointDefinition[] = [
   endpoint('GET', '/api/v1/admin/verifications', 'Administration', 'Read internal verification queue records.', 'internal', ['admin:read'], ['verification_reviewer', 'senior_reviewer', 'compliance', 'support', 'administrator'], 'internal'),
   endpoint('GET', '/api/v1/developer/clients', 'Developer APIs', 'List developer API client registrations.', 'api_key', ['developer:manage'], [], 'partner'),
   endpoint('POST', '/api/v1/partner/applications', 'Partner APIs', 'Submit a partner application using tenant-approved passport data.', 'oauth_client', ['partner:write'], [], 'partner'),
+  endpoint('POST', '/api/v1/partner/verification-requests', 'Partner Verification Requests', 'Create a post-application verification request from a partner-submitted traditional application.', 'oauth_client', ['partner:write'], [], 'partner'),
+  endpoint('GET', '/api/v1/partner/verification-requests/:requestId/status', 'Partner Verification Requests', 'Return partner-safe verification status without documents, full credit data, or complete application JSON.', 'oauth_client', ['partner:read'], [], 'partner'),
+  endpoint('POST', '/api/v1/partner/verification-requests/:requestId/cancel', 'Partner Verification Requests', 'Cancel or revoke a pending partner verification request.', 'oauth_client', ['partner:write'], [], 'partner'),
   endpoint('POST', '/api/v1/webhooks/test', 'Webhooks', 'Send a future test webhook event to a registered endpoint.', 'api_key', ['webhooks:manage'], [], 'partner'),
 ];
 

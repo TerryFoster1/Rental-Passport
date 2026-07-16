@@ -3,6 +3,7 @@ export const env = {
   appEnv: import.meta.env.VITE_APP_ENV ?? 'local',
   appUrl: import.meta.env.VITE_APP_URL ?? window.location.origin,
   partnerViewerDemoEnabled: import.meta.env.VITE_ENABLE_PARTNER_VIEWER_DEMO === 'true',
+  postApplicationDemoEnabled: import.meta.env.VITE_ENABLE_POST_APPLICATION_DEMO === 'true',
   supabaseUrl: import.meta.env.VITE_SUPABASE_URL as string | undefined,
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined,
 };
