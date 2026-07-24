@@ -134,7 +134,7 @@ export function GuidedOnboardingPage({ onNavigate }: { onNavigate: (path: string
 
     setSaveState('saving');
     try {
-      await createOutreachInvitation(user, {
+      const result = await createOutreachInvitation(user, {
         sectionKey: active.sectionKey,
         outreachType,
         recipientName: outreachName,
@@ -144,7 +144,11 @@ export function GuidedOnboardingPage({ onNavigate }: { onNavigate: (path: string
         ...active.progressRecord.draft,
         outreachRecipient: outreachEmail,
       });
-      setMessage('Secure outreach invitation recorded. Final verification still requires reviewer approval.');
+      setMessage(
+        result.emailDeliveryStatus === 'sent'
+          ? 'Secure outreach invitation sent. Final verification still requires reviewer approval.'
+          : `Secure outreach invitation recorded. Email status: ${result.emailDeliveryStatus}. Final verification still requires reviewer approval.`,
+      );
       setOutreachEmail('');
       setOutreachName('');
     } catch (error) {

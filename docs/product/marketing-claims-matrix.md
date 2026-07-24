@@ -31,6 +31,18 @@ This matrix defines what Rental Passport and Rental District may safely say at e
 | "Landlords receive a trusted summary." | Yes | Partner-safe summary contract implemented. |
 | "Bank-level security." | Avoid | Use specific security claims instead. |
 
+## Phase A.2 Manual Workflow
+
+| Claim | Allowed? | Conditions |
+|---|---:|---|
+| "Manual verification workflows are supported." | Yes | A.2 migration, Edge Functions, and reviewer workflow are deployed to staging/production. |
+| "Employers, previous landlords, and references can respond through secure scoped forms." | Yes | External response Edge Function and routes are deployed and tested. |
+| "Source documents are private by default." | Yes | Storage buckets are private and evidence-access tests pass. |
+| "Verification decisions are made by Rental Passport reviewers." | Yes | Required checklist enforcement and reviewer audit logs are active. |
+| "Instant verification." | No | Still prohibited. |
+| "Direct credit bureau integration." | No | Still prohibited. |
+| "AI fraud detection." | No | Still prohibited. |
+
 ## Phase C Provider-Assisted
 
 | Claim | Allowed? | Conditions |
@@ -68,4 +80,3 @@ Do not expose these in production copy until implemented and tested:
 - Public API self-serve integration.
 - Background checks.
 - Landlord screening add-ons in tenant flows.
-

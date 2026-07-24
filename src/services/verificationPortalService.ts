@@ -25,6 +25,9 @@ const decisionToSectionStatus: Record<VerificationDecisionType, PassportSectionS
   needs_more_information: 'needs_more_information',
   escalate: 'under_review',
   fraud_review: 'under_review',
+  unable_to_verify: 'needs_more_information',
+  needs_reverification: 'needs_reverification',
+  expired: 'expired',
 };
 
 export async function getVerificationDashboard(): Promise<VerificationDashboardMetrics> {
@@ -71,15 +74,46 @@ export async function getVerificationCaseDetail(caseId: string): Promise<Verific
   if (flags.error) throw flags.error;
   if (requests.error) throw requests.error;
   if (activity.error) throw activity.error;
+  const selectedCase = caseRow.data as VerificationCase;
+  const [evidence, outreach] = await Promise.all([
+    supabase
+      .from('evidence_documents')
+      .select('id, document_type, original_filename, status, landlord_visible, created_at')
+      .eq('passport_id', selectedCase.passport_id)
+      .eq('passport_version_id', selectedCase.passport_version_id)
+      .eq('section_key', selectedCase.section_key)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('verification_outreach')
+      .select('id, outreach_type, recipient_name, recipient_email, status, expires_at')
+      .eq('passport_id', selectedCase.passport_id)
+      .eq('passport_version_id', selectedCase.passport_version_id)
+      .eq('section_key', selectedCase.section_key)
+      .order('created_at', { ascending: false }),
+  ]);
+  if (evidence.error) throw evidence.error;
+  if (outreach.error) throw outreach.error;
+  const outreachIds = (outreach.data ?? []).map((item) => String(item.id));
+  const responses = outreachIds.length > 0
+    ? await supabase
+        .from('verification_outreach_responses')
+        .select('id, outreach_id, respondent_name, structured_response, received_at')
+        .in('outreach_id', outreachIds)
+        .order('received_at', { ascending: false })
+    : { data: [], error: null };
+  if (responses.error) throw responses.error;
 
   return {
-    case: caseRow.data as VerificationCase,
+    case: selectedCase,
     checklist: (checklist.data ?? []) as VerificationChecklistItem[],
     notes: (notes.data ?? []) as VerificationNote[],
     decisions: (decisions.data ?? []) as VerificationDecision[],
     fraudFlags: (flags.data ?? []) as FraudFlag[],
     informationRequests: (requests.data ?? []) as CustomerInformationRequest[],
     activity: (activity.data ?? []) as ReviewerActivity[],
+    evidenceDocuments: (evidence.data ?? []) as VerificationCaseDetail['evidenceDocuments'],
+    outreach: (outreach.data ?? []) as VerificationCaseDetail['outreach'],
+    outreachResponses: (responses.data ?? []) as VerificationCaseDetail['outreachResponses'],
   };
 }
 
@@ -188,12 +222,33 @@ export async function submitVerificationDecision(caseId: string, user: User, dec
   const verificationCase = caseRow as VerificationCase;
   const nextSectionStatus = decisionToSectionStatus[decisionInput.decision];
   const nextCaseStatus = decisionToCaseStatus(decisionInput.decision);
+  const requiredChecklist = await supabase
+    .from('verification_checklists')
+    .select('label, checked, required')
+    .eq('verification_case_id', caseId)
+    .eq('required', true);
+  if (requiredChecklist.error) throw requiredChecklist.error;
+  const incomplete = (requiredChecklist.data ?? []).filter((item) => !item.checked);
+  if (decisionInput.decision === 'approve' && incomplete.length > 0 && !decisionInput.overrideReason?.trim()) {
+    throw new Error(`Required checklist is incomplete: ${incomplete.map((item) => item.label).join(', ')}`);
+  }
 
   const decision = await supabase.from('verification_decisions').insert({
     verification_case_id: caseId,
+    passport_id: verificationCase.passport_id,
+    passport_version_id: verificationCase.passport_version_id,
+    section_key: verificationCase.section_key,
     reviewer_user_id: user.id,
     decision: decisionInput.decision,
     reason: decisionInput.reason.trim(),
+    checklist_snapshot: requiredChecklist.data ?? [],
+    evidence_used: [],
+    verification_methods: verificationMethodsFor(verificationCase.section_key, decisionInput.decision),
+    landlord_safe_summary: decisionInput.landlordSafeSummary?.trim() || landlordSafeDecisionSummary(verificationCase, decisionInput.decision),
+    internal_notes: decisionInput.reason.trim(),
+    expiry_date: decisionInput.expiryDate || defaultExpiryDate(decisionInput.decision),
+    override_used: Boolean(decisionInput.overrideReason?.trim()),
+    override_reason: decisionInput.overrideReason?.trim() || null,
   });
   if (decision.error) throw decision.error;
 
@@ -211,8 +266,9 @@ async function updatePassportSection(verificationCase: VerificationCase, status:
     .update({
       status,
       progress: statusToProgress(status),
-      verification_state: status === 'verified' ? 'verified' : status === 'needs_more_information' ? 'pending_review' : 'pending_review',
+      verification_state: sectionVerificationState(status),
       last_updated_at: new Date().toISOString(),
+      needs_reverification_at: status === 'needs_reverification' || status === 'expired' ? new Date().toISOString() : null,
     })
     .eq('passport_id', verificationCase.passport_id)
     .eq('passport_version_id', verificationCase.passport_version_id)
@@ -268,6 +324,9 @@ function decisionToCaseStatus(decision: VerificationDecisionType) {
   if (decision === 'reject') return 'rejected';
   if (decision === 'needs_more_information') return 'awaiting_customer_response';
   if (decision === 'fraud_review') return 'fraud_review';
+  if (decision === 'unable_to_verify') return 'unable_to_verify';
+  if (decision === 'needs_reverification') return 'needs_reverification';
+  if (decision === 'expired') return 'expired';
   return 'escalated';
 }
 
@@ -283,6 +342,32 @@ function decisionDescription(sectionKey: PassportSectionKey, decision: Verificat
   return `${sectionLabel(sectionKey)} verification decision recorded: ${decision}.`;
 }
 
+function verificationMethodsFor(sectionKey: PassportSectionKey, decision: VerificationDecisionType) {
+  if (decision !== 'approve') return [];
+  const map: Record<PassportSectionKey, string[]> = {
+    identity_confirmation: ['manual_identity_document_review'],
+    employment: ['manual_document_review', 'third_party_response_review'],
+    rental_history: ['manual_document_review', 'previous_landlord_response_review'],
+    references: ['reference_response_review'],
+    credit_report: ['manual_credit_provider_summary_review'],
+  };
+  return map[sectionKey];
+}
+
+function landlordSafeDecisionSummary(verificationCase: VerificationCase, decision: VerificationDecisionType) {
+  if (decision === 'approve') return `${sectionLabel(verificationCase.section_key)} verified by Rental Passport manual review.`;
+  if (decision === 'needs_more_information') return `${sectionLabel(verificationCase.section_key)} needs more information from the applicant.`;
+  if (decision === 'unable_to_verify') return `${sectionLabel(verificationCase.section_key)} could not be verified with the available evidence.`;
+  if (decision === 'needs_reverification') return `${sectionLabel(verificationCase.section_key)} requires reverification.`;
+  if (decision === 'expired') return `${sectionLabel(verificationCase.section_key)} verification has expired.`;
+  return `${sectionLabel(verificationCase.section_key)} remains under internal review.`;
+}
+
+function defaultExpiryDate(decision: VerificationDecisionType) {
+  if (decision !== 'approve') return null;
+  return new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString().slice(0, 10);
+}
+
 function statusToProgress(status: PassportSectionStatus) {
   const map: Record<PassportSectionStatus, number> = {
     not_started: 0,
@@ -295,6 +380,15 @@ function statusToProgress(status: PassportSectionStatus) {
     expired: 50,
   };
   return map[status];
+}
+
+function sectionVerificationState(status: PassportSectionStatus) {
+  if (status === 'verified') return 'verified';
+  if (status === 'needs_reverification') return 'needs_reverification';
+  if (status === 'needs_more_information') return 'needs_more_information';
+  if (status === 'expired') return 'expired';
+  if (status === 'under_review' || status === 'ready_for_review') return 'under_review';
+  return 'pending_review';
 }
 
 function sectionLabel(sectionKey: PassportSectionKey) {
@@ -364,6 +458,9 @@ function createDemoDetail(caseId: string): VerificationCaseDetail {
     fraudFlags: [],
     informationRequests: [],
     activity: [{ id: 'demo-activity', verification_case_id: selected.id, actor_user_id: 'demo-reviewer', event_type: 'case_opened', description: 'Reviewer opened case.', created_at: now }],
+    evidenceDocuments: [{ id: 'demo-evidence', document_type: 'supporting_document', original_filename: 'demo-document.pdf', status: 'needs_review', landlord_visible: false, created_at: now }],
+    outreach: [{ id: 'demo-outreach', outreach_type: selected.verification_type === 'references' ? 'reference' : selected.verification_type === 'rental_history' ? 'previous_landlord' : 'employer', recipient_name: 'Demo recipient', recipient_email: 'recipient@example.test', status: 'sent', expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString() }],
+    outreachResponses: [],
   };
 }
 

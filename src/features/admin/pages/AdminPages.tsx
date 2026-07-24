@@ -23,6 +23,7 @@ import {
   VerificationChecklist,
 } from '@/features/admin/components/VerificationPortalComponents';
 import { generateReviewerAssistanceSummary } from '@/services/ai/aiAssistanceService';
+import { recordManualPhoneConfirmation } from '@/services/phaseAService';
 import {
   addFraudFlag,
   addVerificationNote,
@@ -141,7 +142,7 @@ export function VerificationQueuePage({ onNavigate }: { onNavigate: (path: strin
         <div className="grid gap-4 lg:grid-cols-[1fr_180px_180px_180px]">
           <Input label="Search" value={filters.search} onChange={(event) => setFilter('search', event.target.value)} />
           <SelectFilter label="Section" value={filters.verificationType} options={['all', 'identity', 'employment', 'rental_history', 'references', 'credit', 'missing_information', 'reverification', 'fraud']} onChange={(value) => setFilter('verificationType', value as VerificationQueueFilters['verificationType'])} />
-          <SelectFilter label="Status" value={filters.status} options={['all', 'awaiting_review', 'in_review', 'awaiting_customer_response', 'approved', 'rejected', 'escalated', 'fraud_review']} onChange={(value) => setFilter('status', value as VerificationQueueFilters['status'])} />
+          <SelectFilter label="Status" value={filters.status} options={['all', 'awaiting_review', 'in_review', 'awaiting_customer_response', 'approved', 'rejected', 'unable_to_verify', 'needs_reverification', 'expired', 'escalated', 'fraud_review']} onChange={(value) => setFilter('status', value as VerificationQueueFilters['status'])} />
           <SelectFilter label="Priority" value={filters.priority} options={['all', 'low', 'normal', 'high', 'urgent']} onChange={(value) => setFilter('priority', value as VerificationQueueFilters['priority'])} />
         </div>
       </Card>
@@ -203,13 +204,24 @@ export function VerificationCasePage({ caseId, onNavigate }: { caseId: string; o
         <div className="space-y-6">
           <CaseSummaryCard detail={detail} />
           <ReviewerAssistanceCard assistance={assistance} />
-          <EvidenceViewer sectionLabel={detail.case.verification_type.replaceAll('_', ' ')} />
+          <EvidenceViewer detail={detail} sectionLabel={detail.case.verification_type.replaceAll('_', ' ')} />
           <VerificationChecklist items={detail.checklist} onToggle={(itemId, checked) => user && guarded(() => setChecklistItem(detail.case.id, itemId, user, checked))} />
           <ReviewerNotes notes={detail.notes} onAdd={(body) => user && guarded(() => addVerificationNote(detail.case.id, user, reviewerName, body))} />
           <CaseTimeline activity={detail.activity} />
         </div>
         <aside className="space-y-6">
           <AssignmentCard assignedTo={detail.case.assigned_reviewer_name} onAssign={() => user && guarded(() => assignCase(detail.case.id, user, reviewerName))} onPriority={(priority) => user && guarded(() => updateCasePriority(detail.case.id, user, priority))} />
+          {detail.case.verification_type === 'identity' && (
+            <Card className="p-6">
+              <h2 className="text-xl font-black">Manual phone confirmation</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-700">
+                Record staff-confirmed phone status for the MVP. This is not SMS automation.
+              </p>
+              <Button className="mt-4" onClick={() => user && guarded(() => recordManualPhoneConfirmation(user, detail.case.applicant_user_id, 'not_provided_in_case'))}>
+                Record Manual Confirmation
+              </Button>
+            </Card>
+          )}
           <DecisionPanel onDecision={(decision: VerificationDecisionType, reason: string) => user && guarded(() => submitVerificationDecision(detail.case.id, user, { decision, reason }))} />
           <RequestInformationModal onRequest={(requestedItem, message) => user && guarded(() => requestInformation(detail.case.id, user, requestedItem, message))} />
           <FraudFlagCard flags={detail.fraudFlags} onFlag={(type: FraudFlagType, description: string) => user && guarded(() => addFraudFlag(detail.case.id, user, type, description))} />

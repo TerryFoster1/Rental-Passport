@@ -41,6 +41,7 @@ import { CreditReportPage } from '@/features/creditReport/pages/CreditReportPage
 import { DeveloperPortalPage } from '@/features/developers/pages/DeveloperPortalPage';
 import { IdentityPage } from '@/features/identity/pages/IdentityPage';
 import { GuidedOnboardingPage } from '@/features/onboarding/pages/GuidedOnboardingPage';
+import { ExternalVerificationResponsePage } from '@/features/externalVerification/pages/ExternalVerificationResponsePage';
 import {
   LandlordApplicationsPage,
   LandlordDetailPage,
@@ -146,6 +147,18 @@ function AppRoutes() {
   const verificationRequestMatch = pathname.match(/^\/verification-request\/([^/]+)$/);
   if (verificationRequestMatch) {
     return <PostApplicationVerificationRequestPage token={verificationRequestMatch[1]} />;
+  }
+
+  const externalVerificationMatch = pathname.match(/^\/verify\/(employment|rental-history|reference)\/([^/]+)$/);
+  if (externalVerificationMatch) {
+    return (
+      <PublicLayout onNavigate={navigate}>
+        <ExternalVerificationResponsePage
+          type={externalVerificationMatch[1] as 'employment' | 'rental-history' | 'reference'}
+          token={externalVerificationMatch[2]}
+        />
+      </PublicLayout>
+    );
   }
 
   if (authRoutes.has(pathname)) {

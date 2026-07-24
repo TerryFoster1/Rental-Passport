@@ -53,16 +53,46 @@ export function VerificationChecklist({ items, onToggle }: { items: Verification
   );
 }
 
-export function EvidenceViewer({ sectionLabel }: { sectionLabel: string }) {
+export function EvidenceViewer({ detail, sectionLabel }: { detail: VerificationCaseDetail; sectionLabel: string }) {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-3">
         <FileSearch className="h-5 w-5 text-blue-700" />
         <h2 className="text-xl font-black">Uploaded Documents</h2>
       </div>
-      <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
-        <p className="font-black">Secure evidence viewer placeholder</p>
-        <p className="mt-2 text-sm leading-6 text-slate-700">{sectionLabel} documents will render here for authorized reviewers only. Document views are audit logged and prepared for future AI assistance, OCR, and anomaly highlighting.</p>
+      <div className="mt-5 space-y-3">
+        {detail.evidenceDocuments.length > 0 ? detail.evidenceDocuments.map((document) => (
+          <div key={document.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <strong>{document.original_filename}</strong>
+            <p className="mt-1 text-sm text-slate-600">
+              {document.document_type.replaceAll('_', ' ')} - {document.status.replaceAll('_', ' ')}
+            </p>
+            <p className="mt-1 text-xs font-semibold text-slate-500">
+              Landlord visible: {document.landlord_visible ? 'permitted summary only' : 'no'}
+            </p>
+          </div>
+        )) : (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
+            <p className="font-black">No registered evidence documents</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{sectionLabel} documents will render here for authorized reviewers only after upload. Document views are audit logged.</p>
+          </div>
+        )}
+      </div>
+      <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
+        <h3 className="font-black text-blue-950">Outreach and responses</h3>
+        <div className="mt-3 space-y-2">
+          {detail.outreach.map((item) => (
+            <p key={item.id} className="text-sm text-blue-950">
+              {item.outreach_type.replaceAll('_', ' ')} to {item.recipient_name}: {item.status.replaceAll('_', ' ')}
+            </p>
+          ))}
+          {detail.outreachResponses.map((item) => (
+            <p key={item.id} className="text-sm font-bold text-blue-950">
+              Response received from {item.respondent_name} on {new Date(item.received_at).toLocaleDateString()}
+            </p>
+          ))}
+          {detail.outreach.length === 0 && detail.outreachResponses.length === 0 && <p className="text-sm text-blue-950">No outreach records yet.</p>}
+        </div>
       </div>
     </Card>
   );
@@ -121,6 +151,9 @@ export function DecisionPanel({ onDecision }: { onDecision: (decision: Verificat
           <select className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-navy outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100" value={decision} onChange={(event) => setDecision(event.target.value as VerificationDecisionType)}>
             <option value="approve">Approve</option>
             <option value="needs_more_information">Needs More Information</option>
+            <option value="unable_to_verify">Unable to Verify</option>
+            <option value="needs_reverification">Needs Reverification</option>
+            <option value="expired">Expired</option>
             <option value="reject">Reject</option>
             <option value="escalate">Escalate</option>
             <option value="fraud_review">Fraud Review</option>

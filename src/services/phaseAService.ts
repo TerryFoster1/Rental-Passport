@@ -13,10 +13,13 @@ import type {
   GuidedOnboardingSummary,
   LandlordRequestInput,
   ManualCreditWorkflowStatus,
+  ExternalVerificationInvitation,
+  ExternalVerificationResponsePayload,
   OnboardingStageDefinition,
   OnboardingStageKey,
   OnboardingStageProgress,
   OutreachInvitationInput,
+  OutreachInvitationResult,
 } from '@/types/phaseA';
 
 const onboardingDraftKey = (userId: string) => `rental-passport:phase-a:onboarding:${userId}`;
@@ -241,7 +244,8 @@ export async function uploadEvidenceDocument(
 ): Promise<EvidenceDocument> {
   const summary = await getOrCreatePassportSummary(user);
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
-  const storagePath = `${user.id}/${summary.passport.id}/${summary.draftVersion.id}/${sectionKey}/${Date.now()}-${safeName}`;
+  const documentId = crypto.randomUUID();
+  const storagePath = `tenant/${user.id}/passport/${summary.passport.id}/version/${summary.draftVersion.id}/${sectionKey}/${documentId}-${safeName}`;
   const bucket = evidenceBucketFor(documentType);
 
   if (!supabase) {
@@ -299,39 +303,62 @@ export async function uploadEvidenceDocument(
   return data as EvidenceDocument;
 }
 
-export async function createOutreachInvitation(user: User, input: OutreachInvitationInput): Promise<void> {
+export async function createOutreachInvitation(user: User, input: OutreachInvitationInput): Promise<OutreachInvitationResult> {
   const summary = await getOrCreatePassportSummary(user);
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString();
-  const tokenHash = await hashToken(`${input.recipientEmail}:${summary.passport.id}:${Date.now()}`);
+  const responseToken = createOpaqueToken();
+  const tokenHash = await hashToken(responseToken);
+  const responseUrl = `${window.location.origin}/verify/${routeType(input.outreachType)}/${responseToken}`;
+  const idempotencyKey = `${summary.passport.id}:${summary.draftVersion.id}:${input.outreachType}:${input.recipientEmail.trim().toLowerCase()}`;
 
   if (!supabase) {
     await recordActivity(summary.passport.id, user.id, 'outreach_invitation_sent', `${input.outreachType} invitation prepared.`);
-    return;
+    return {
+      outreachId: null,
+      responseToken,
+      responseUrl,
+      emailDeliveryStatus: 'not_configured',
+    };
   }
 
-  const { error } = await supabase.from('verification_outreach').insert({
-    passport_id: summary.passport.id,
-    passport_version_id: summary.draftVersion.id,
-    verification_case_id: input.verificationCaseId ?? null,
-    applicant_user_id: user.id,
-    section_key: input.sectionKey,
-    outreach_type: input.outreachType,
-    recipient_name: input.recipientName.trim(),
-    recipient_email: input.recipientEmail.trim().toLowerCase(),
-    recipient_organization: input.recipientOrganization?.trim() || null,
-    response_token_hash: tokenHash,
-    status: 'sent',
-    sent_at: new Date().toISOString(),
-    expires_at: expiresAt,
-    company_domain: input.companyDomain?.trim() || null,
-    company_website: input.companyWebsite?.trim() || null,
-  });
+  const { data, error } = await supabase
+    .from('verification_outreach')
+    .upsert(
+      {
+        passport_id: summary.passport.id,
+        passport_version_id: summary.draftVersion.id,
+        verification_case_id: input.verificationCaseId ?? null,
+        applicant_user_id: user.id,
+        section_key: input.sectionKey,
+        outreach_type: input.outreachType,
+        recipient_name: input.recipientName.trim(),
+        recipient_email: input.recipientEmail.trim().toLowerCase(),
+        recipient_organization: input.recipientOrganization?.trim() || null,
+        response_token_hash: tokenHash,
+        status: 'ready_to_send',
+        expires_at: expiresAt,
+        company_domain: input.companyDomain?.trim() || null,
+        company_website: input.companyWebsite?.trim() || null,
+        idempotency_key: idempotencyKey,
+      },
+      { onConflict: 'idempotency_key' },
+    )
+    .select('id')
+    .single();
   if (error) throw error;
-  await recordActivity(summary.passport.id, user.id, 'outreach_invitation_sent', `${input.outreachType} invitation sent.`);
+  const emailStatus = await sendOutreachEmail(String(data.id), responseToken);
+  await recordActivity(summary.passport.id, user.id, 'outreach_invitation_sent', `${input.outreachType} invitation ${emailStatus}.`);
   await recordAudit(user.id, user.id, 'outreach.invitation_sent', 'passport', summary.passport.id, {
     outreachType: input.outreachType,
     sectionKey: input.sectionKey,
+    emailStatus,
   });
+  return {
+    outreachId: String(data.id),
+    responseToken,
+    responseUrl,
+    emailDeliveryStatus: emailStatus,
+  };
 }
 
 export async function createManualCreditOperation(
@@ -438,6 +465,56 @@ export async function createLandlordInformationRequest(user: User, input: Landlo
   });
 }
 
+export async function recordManualPhoneConfirmation(
+  reviewer: User,
+  targetUserId: string,
+  phoneNumber: string,
+  method = 'manual_staff_confirmation',
+): Promise<void> {
+  if (!supabase) return;
+  const confirmedAt = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString();
+  const { error } = await supabase.from('phone_confirmation_records').insert({
+    user_id: targetUserId,
+    phone_number: phoneNumber || 'not_provided_in_case',
+    status: 'confirmed',
+    method,
+    confirmed_by_user_id: reviewer.id,
+    confirmed_at: confirmedAt,
+    expires_at: expiresAt,
+    notes: 'Manual MVP phone confirmation recorded by authorized staff. This is not SMS OTP.',
+  });
+  if (error) throw error;
+  await supabase.from('profiles').update({
+    phone_verified: true,
+    verification_status: 'manually_verified',
+  }).eq('id', targetUserId);
+  await recordAudit(reviewer.id, targetUserId, 'phone.manual_confirmation_recorded', 'profile', targetUserId, {
+    method,
+    expiresAt,
+  });
+}
+
+export async function getExternalVerificationInvitation(token: string): Promise<ExternalVerificationInvitation> {
+  if (!supabase) return createDemoExternalInvitation(token);
+  const { data, error } = await supabase.functions.invoke('verification-response', {
+    body: { action: 'load', token },
+  });
+  if (error) throw error;
+  return mapExternalInvitation(data?.invitation);
+}
+
+export async function submitExternalVerificationResponse(
+  token: string,
+  response: ExternalVerificationResponsePayload,
+): Promise<void> {
+  if (!supabase) return;
+  const { error } = await supabase.functions.invoke('verification-response', {
+    body: { token, response },
+  });
+  if (error) throw error;
+}
+
 async function getOrCreateStageProgress(
   user: User,
   passportId: string,
@@ -519,6 +596,19 @@ async function recordActivity(passportId: string, actorUserId: string | null, ev
   });
 }
 
+async function sendOutreachEmail(outreachId: string, token: string): Promise<OutreachInvitationResult['emailDeliveryStatus']> {
+  if (!supabase) return 'not_configured';
+  const { data, error } = await supabase.functions.invoke('send-verification-email', {
+    body: { outreachId, token },
+  });
+  if (error) return 'failed';
+  const deliveryStatus = String(data?.deliveryStatus ?? 'queued');
+  if (deliveryStatus === 'sent') return 'sent';
+  if (deliveryStatus === 'skipped_test_mode') return 'skipped_test_mode';
+  if (deliveryStatus === 'failed') return 'failed';
+  return 'queued';
+}
+
 async function recordAudit(
   actorUserId: string,
   targetUserId: string,
@@ -587,4 +677,45 @@ async function hashToken(value: string) {
   return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
+}
+
+function createOpaqueToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function routeType(outreachType: OutreachInvitationInput['outreachType']) {
+  if (outreachType === 'employer') return 'employment';
+  if (outreachType === 'reference') return 'reference';
+  return 'rental-history';
+}
+
+function createDemoExternalInvitation(token: string): ExternalVerificationInvitation {
+  return {
+    id: token,
+    outreachType: token.includes('reference') ? 'reference' : token.includes('rental') ? 'previous_landlord' : 'employer',
+    recipientName: 'Verification Recipient',
+    recipientEmail: 'recipient@example.test',
+    applicantUserId: 'demo-user',
+    sectionKey: token.includes('reference') ? 'references' : token.includes('rental') ? 'rental_history' : 'employment',
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+    status: 'opened',
+  };
+}
+
+function mapExternalInvitation(raw: Record<string, unknown> | undefined): ExternalVerificationInvitation {
+  if (!raw) throw new Error('Invitation not found.');
+  return {
+    id: String(raw.id),
+    outreachType: raw.outreachType as ExternalVerificationInvitation['outreachType'],
+    recipientName: String(raw.recipientName),
+    recipientEmail: String(raw.recipientEmail),
+    applicantUserId: String(raw.applicantUserId),
+    sectionKey: raw.sectionKey as ExternalVerificationInvitation['sectionKey'],
+    expiresAt: String(raw.expiresAt),
+    status: String(raw.status),
+  };
 }

@@ -109,6 +109,21 @@ export type EvidenceDocument = {
 
 export type OutreachType = 'employer' | 'previous_landlord' | 'property_manager' | 'reference';
 export type OutreachStatus = 'draft' | 'sent' | 'responded' | 'reminder_due' | 'expired' | 'escalated' | 'cancelled';
+export type OutreachState =
+  | 'draft'
+  | 'ready_to_send'
+  | 'sent'
+  | 'delivered'
+  | 'delivery_failed'
+  | 'opened'
+  | 'started'
+  | 'completed'
+  | 'expired'
+  | 'revoked'
+  | 'reminder_due'
+  | 'reminder_sent'
+  | 'manual_follow_up_required'
+  | 'cancelled';
 
 export type OutreachInvitationInput = {
   sectionKey: PassportSectionKey;
@@ -119,6 +134,13 @@ export type OutreachInvitationInput = {
   companyDomain?: string;
   companyWebsite?: string;
   verificationCaseId?: string | null;
+};
+
+export type OutreachInvitationResult = {
+  outreachId: string | null;
+  responseToken: string | null;
+  responseUrl: string | null;
+  emailDeliveryStatus: 'not_configured' | 'skipped_test_mode' | 'queued' | 'sent' | 'failed';
 };
 
 export type ManualCreditWorkflowStatus =
@@ -151,3 +173,24 @@ export type LandlordRequestInput = {
   message: string;
 };
 
+export type ExternalVerificationType = 'employment' | 'rental-history' | 'reference';
+
+export type ExternalVerificationInvitation = {
+  id: string;
+  outreachType: OutreachType;
+  recipientName: string;
+  recipientEmail: string;
+  applicantUserId: string;
+  sectionKey: PassportSectionKey;
+  expiresAt: string;
+  status: string;
+};
+
+export type ExternalVerificationResponsePayload = {
+  respondentName: string;
+  respondentTitle?: string;
+  respondentEmail?: string;
+  respondentPhone?: string;
+  declarationAccepted: boolean;
+  answers: Record<string, string | boolean>;
+};
