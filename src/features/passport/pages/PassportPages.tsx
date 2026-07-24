@@ -31,6 +31,7 @@ export function TenantDashboardPage({ onNavigate }: { onNavigate: (path: string)
         description="Complete each section at your pace. This is completeness tracking, not a tenant score."
         actions={
           <div className="flex flex-wrap gap-3">
+            <Button variant="primary" onClick={() => onNavigate('/passport/onboarding')}>Guided Onboarding</Button>
             <Button onClick={() => onNavigate('/passport/share')}>Share Passport</Button>
             <Button onClick={() => onNavigate('/passport/preview')}>Preview Passport</Button>
           </div>
@@ -70,7 +71,7 @@ export function PassportOverviewPage({ onNavigate }: { onNavigate: (path: string
       <PageHeader
         eyebrow="Passport"
         title="Passport overview"
-        description="A versioned passport shell for future rental, employment, reference, credit, and identity modules."
+        description="Review completeness, verification state, and the versioned application package before sharing."
         actions={
           <div className="flex flex-wrap gap-3">
             <Button onClick={() => onNavigate('/passport/share')}>Share Passport</Button>
@@ -82,7 +83,7 @@ export function PassportOverviewPage({ onNavigate }: { onNavigate: (path: string
         aside={
           <Card className="p-6">
             <h2 className="text-xl font-black">Versioning</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-700">Verification will attach to a specific passport version. This phase creates the structure without full reverification logic.</p>
+            <p className="mt-3 text-sm leading-6 text-slate-700">Verification attaches to a specific passport version. If verified information changes, only the affected section should require reverification.</p>
             <div className="mt-4 space-y-2 text-sm">
               <p>Current version: {state.summary.currentVersion.version_number}</p>
               <p>Draft version: {state.summary.draftVersion.version_number}</p>

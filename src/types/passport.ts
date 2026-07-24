@@ -10,7 +10,25 @@ export type PassportSectionStatus =
   | 'needs_reverification'
   | 'expired';
 
-export type PassportVerificationState = 'unverified' | 'pending_review' | 'verified' | 'needs_reverification';
+export type PassportVerificationState =
+  | 'unverified'
+  | 'pending_review'
+  | 'under_review'
+  | 'verified'
+  | 'needs_more_information'
+  | 'needs_reverification'
+  | 'expired'
+  | 'unable_to_verify';
+export type PassportCompletenessState = 'missing' | 'incomplete' | 'complete';
+export type ManualVerificationState =
+  | 'not_verified'
+  | 'pending'
+  | 'under_review'
+  | 'verified'
+  | 'needs_more_information'
+  | 'needs_reverification'
+  | 'expired'
+  | 'unable_to_verify';
 
 export type PassportStatus = 'draft' | 'in_progress' | 'ready_for_review' | 'verified' | 'needs_reverification';
 
@@ -71,6 +89,17 @@ export type PassportActivityEvent =
   | 'credit_report_document_uploaded'
   | 'credit_report_ready_for_review'
   | 'credit_report_needs_reverification'
+  | 'consent_recorded'
+  | 'consent_withdrawn'
+  | 'document_uploaded'
+  | 'document_viewed'
+  | 'outreach_invitation_sent'
+  | 'outreach_response_received'
+  | 'outreach_reminder_sent'
+  | 'credit_authorized'
+  | 'credit_provider_work_item_created'
+  | 'landlord_information_requested'
+  | 'reverification_required'
   | 'passport_shared'
   | 'invitation_sent'
   | 'landlord_access_created'

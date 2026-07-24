@@ -4,7 +4,15 @@ export type VerificationCaseStatus = 'awaiting_review' | 'in_review' | 'awaiting
 
 export type VerificationPriority = 'low' | 'normal' | 'high' | 'urgent';
 
-export type VerificationType = 'identity' | 'employment' | 'rental_history' | 'references' | 'credit' | 'fraud';
+export type VerificationType =
+  | 'identity'
+  | 'employment'
+  | 'rental_history'
+  | 'references'
+  | 'credit'
+  | 'fraud'
+  | 'missing_information'
+  | 'reverification';
 
 export type VerificationDecisionType = 'approve' | 'reject' | 'needs_more_information' | 'escalate' | 'fraud_review';
 

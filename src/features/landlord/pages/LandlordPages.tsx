@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { createLandlordInformationRequest } from '@/services/phaseAService';
 import { SignInPage } from '@/features/auth/AuthPages';
 import {
   activateSecureAccess,
@@ -433,6 +434,15 @@ export function LandlordDetailPage({
         section.requestActionLabel,
         `${section.requestActionLabel} requested by landlord from the passport detail page.`,
       );
+      await createLandlordInformationRequest(user, {
+        applicationId,
+        passportId: detail.application.passport_id,
+        passportVersionId: detail.application.passport_version_id,
+        tenantUserId: detail.application.tenant_user_id,
+        sectionKey: section.key,
+        requestType: landlordRequestType(section.key),
+        message: `${section.requestActionLabel} requested by landlord from the passport detail page.`,
+      });
       setRequestedSections((current) => new Set(current).add(request.section_key));
       setNotice(`${section.requestActionLabel} sent to the tenant.`);
     } catch (requestError) {
@@ -547,6 +557,17 @@ function landlordSectionOutcome(section: LandlordPassportSection, requested: boo
   if (section.verificationState === 'Verified') return 'Verified';
   if (section.completenessStatus === 'Incomplete') return 'Incomplete';
   return 'Provided';
+}
+
+function landlordRequestType(sectionKey: PassportSectionKey) {
+  const map = {
+    identity_confirmation: 'identity_confirmation',
+    credit_report: 'credit_report',
+    employment: 'updated_employment',
+    rental_history: 'additional_rental_history',
+    references: 'another_reference',
+  } as const;
+  return map[sectionKey];
 }
 
 function PassportStatusBadge({ label, verification = false }: { label: string; verification?: boolean }) {

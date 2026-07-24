@@ -80,6 +80,8 @@ function recommendedChecklist(verificationType: VerificationCaseDetail['case']['
     references: ['Confirm relationship context', 'Confirm contact completeness', 'Confirm consent language'],
     credit: ['Confirm applicant name on report', 'Check report date', 'Confirm provider and tamper review'],
     fraud: ['Review duplicate indicators', 'Review document alteration indicators', 'Escalate if uncertainty remains'],
+    missing_information: ['Confirm requested item is specific', 'Check tenant response status', 'Resolve only after evidence is updated'],
+    reverification: ['Confirm what changed', 'Invalidate only the affected section', 'Record new expiry date when approved'],
   };
   return [...base, ...map[verificationType]];
 }

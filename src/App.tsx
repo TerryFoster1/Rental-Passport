@@ -40,6 +40,7 @@ import { EmploymentPage } from '@/features/employment/pages/EmploymentPage';
 import { CreditReportPage } from '@/features/creditReport/pages/CreditReportPage';
 import { DeveloperPortalPage } from '@/features/developers/pages/DeveloperPortalPage';
 import { IdentityPage } from '@/features/identity/pages/IdentityPage';
+import { GuidedOnboardingPage } from '@/features/onboarding/pages/GuidedOnboardingPage';
 import {
   LandlordApplicationsPage,
   LandlordDetailPage,
@@ -96,6 +97,7 @@ const protectedRoutes = new Set([
   '/landlord',
   '/landlord/applications',
   '/passport',
+  '/passport/onboarding',
   '/passport/preview',
   '/passport/share',
   '/passport/activity',
@@ -279,6 +281,7 @@ function TenantPassportRoute({
   if (pathname === '/app' || pathname === '/dashboard')
     return <TenantDashboardPage onNavigate={onNavigate} />;
   if (pathname === '/passport') return <PassportOverviewPage onNavigate={onNavigate} />;
+  if (pathname === '/passport/onboarding') return <GuidedOnboardingPage onNavigate={onNavigate} />;
   if (pathname === '/passport/preview') return <PassportPreviewPage onNavigate={onNavigate} />;
   if (pathname === '/passport/share') return <TenantSharePage onNavigate={onNavigate} />;
   if (pathname === '/passport/activity') return <PassportActivityPage onNavigate={onNavigate} />;

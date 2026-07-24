@@ -39,6 +39,21 @@ import type { UserRole } from '@/types/database';
 import type { FraudFlagType, VerificationCase, VerificationCaseDetail, VerificationDecisionType, VerificationQueueFilters } from '@/types/verificationPortal';
 
 const internalRoles: UserRole[] = ['verification_reviewer', 'senior_reviewer', 'compliance', 'support', 'administrator'];
+const phaseAQueues = [
+  ['Identity Pending', 'Manual ID and selfie evidence review.'],
+  ['Employment Pending', 'Employer, role, income evidence, and reviewer checklist.'],
+  ['Employer Response Pending', 'Secure employer invitations awaiting structured response.'],
+  ['Rental History Pending', 'Lease/ledger evidence and tenancy facts awaiting review.'],
+  ['Previous Landlord Response Pending', 'Landlord or property manager invitations awaiting response.'],
+  ['References Pending', 'Reference invitations, reminders, and structured responses.'],
+  ['Credit Authorization Pending', 'Tenant authorization and payment state before manual provider work.'],
+  ['Credit Provider Check Pending', 'Authorized staff must run the approved external workflow manually.'],
+  ['Credit Report Review', 'Permitted provider summary and uploaded evidence awaiting approval.'],
+  ['Needs More Information', 'Tenant-facing requests waiting for completion.'],
+  ['Reverification', 'Expired or materially changed section evidence.'],
+  ['Escalated Review', 'Compliance-sensitive uncertainty requiring senior review.'],
+  ['Evidence Concern', 'Internal-only evidence quality concern, never a landlord-facing label.'],
+];
 
 export function AdminGate({ children }: { children: React.ReactNode }) {
   const { roles } = useAuth();
@@ -84,6 +99,21 @@ export function AdminDashboardPage({ onNavigate }: { onNavigate: (path: string) 
           </div>
         </div>
       </Card>
+      <Card className="mt-6 p-6">
+        <h2 className="text-xl font-black">Phase A manual queues</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-700">
+          These queues define launch-safe staff operations. External providers, AI fraud decisions,
+          and automated bureau pulls remain disabled until later phases.
+        </p>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {phaseAQueues.map(([label, description]) => (
+            <div key={label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <strong className="block">{label}</strong>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
     </PageContainer>
   );
 }
@@ -110,7 +140,7 @@ export function VerificationQueuePage({ onNavigate }: { onNavigate: (path: strin
       <Card className="p-5">
         <div className="grid gap-4 lg:grid-cols-[1fr_180px_180px_180px]">
           <Input label="Search" value={filters.search} onChange={(event) => setFilter('search', event.target.value)} />
-          <SelectFilter label="Section" value={filters.verificationType} options={['all', 'identity', 'employment', 'rental_history', 'references', 'credit', 'fraud']} onChange={(value) => setFilter('verificationType', value as VerificationQueueFilters['verificationType'])} />
+          <SelectFilter label="Section" value={filters.verificationType} options={['all', 'identity', 'employment', 'rental_history', 'references', 'credit', 'missing_information', 'reverification', 'fraud']} onChange={(value) => setFilter('verificationType', value as VerificationQueueFilters['verificationType'])} />
           <SelectFilter label="Status" value={filters.status} options={['all', 'awaiting_review', 'in_review', 'awaiting_customer_response', 'approved', 'rejected', 'escalated', 'fraud_review']} onChange={(value) => setFilter('status', value as VerificationQueueFilters['status'])} />
           <SelectFilter label="Priority" value={filters.priority} options={['all', 'low', 'normal', 'high', 'urgent']} onChange={(value) => setFilter('priority', value as VerificationQueueFilters['priority'])} />
         </div>
