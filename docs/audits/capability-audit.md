@@ -12,6 +12,15 @@ The current implementation is not yet a production verification platform. Many c
 
 The safest launch language is that Rental Passport can support a manual MVP after implementation hardening. It cannot yet honestly market automated verification, bureau integration, AI fraud review, instant screening, or production-ready partner APIs.
 
+Addendum: the guided onboarding and verification-engine planning documents extend this audit:
+
+- `docs/product/guided-onboarding-spec.md`
+- `docs/verification/evidence-framework.md`
+- `docs/verification/manual-credit-workflow.md`
+- `docs/compliance/verification-research-boundaries.md`
+- `docs/product/verification-roadmap.md`
+- `docs/product/marketing-claims-matrix.md`
+
 ## Evidence Sources
 
 - Runtime app: `src/App.tsx`
@@ -92,4 +101,3 @@ The safest launch language is that Rental Passport can support a manual MVP afte
 ## Recommended Next Step
 
 Begin with manual MVP hardening: backend service layer, secure document viewing, internal queue generation, email communication framework, and explicit status separation between completeness and verification.
-
