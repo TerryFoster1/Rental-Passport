@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "node --experimental-strip-types --test scripts/tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
