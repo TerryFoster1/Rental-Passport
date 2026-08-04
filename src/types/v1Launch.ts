@@ -57,7 +57,7 @@ export type OcrProviderAdapter = {
   key: string;
   displayName: string;
   supportedDocuments: OcrProviderCapability[];
-  mode: 'manual_placeholder' | 'api';
+  mode: 'local_adapter' | 'manual_placeholder' | 'api';
 };
 
 export type DocumentConsistencyFindingState =

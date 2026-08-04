@@ -77,8 +77,8 @@ describe('V1 launch product distinctions', () => {
     assert.equal(getVerificationOrderReadiness(order), 'tenant_authorization_required');
   });
 
-  it('keeps OCR as reviewer assistance, not document verification', () => {
-    assert.equal(OCR_PROVIDER_ABSTRACTION.mode, 'manual_placeholder');
+  it('keeps local OCR as reviewer assistance, not document verification', () => {
+    assert.equal(OCR_PROVIDER_ABSTRACTION.mode, 'local_adapter');
     assert.ok(OCR_PROVIDER_ABSTRACTION.supportedDocuments.includes('pay_stub'));
     assert.ok(OCR_PROVIDER_ABSTRACTION.supportedDocuments.includes('lease'));
   });

@@ -41,9 +41,9 @@ export const VERIFICATION_PRODUCTS: Record<VerificationProductKey, VerificationP
 };
 
 export const OCR_PROVIDER_ABSTRACTION: OcrProviderAdapter = {
-  key: 'manual_ocr_placeholder',
-  displayName: 'Manual OCR placeholder',
-  mode: 'manual_placeholder',
+  key: 'local_fixture_ocr',
+  displayName: 'Local fixture OCR',
+  mode: 'local_adapter',
   supportedDocuments: [
     'government_id',
     'pay_stub',
