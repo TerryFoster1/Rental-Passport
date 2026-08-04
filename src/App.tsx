@@ -65,7 +65,7 @@ import {
 import { AppShell } from '@/layouts/AppShell';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { env } from '@/lib/env';
+import { env, isPublicDemoEnabled } from '@/lib/env';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 
@@ -83,11 +83,14 @@ const publicRoutes = new Set([
   '/privacy',
   '/terms',
   '/contact',
-  '/demo',
-  '/demo/passport-view',
   '/faq',
   '/developers',
 ]);
+
+if (isPublicDemoEnabled) {
+  publicRoutes.add('/demo');
+  publicRoutes.add('/demo/passport-view');
+}
 const protectedRoutes = new Set([
   '/admin',
   '/admin/verifications',
@@ -178,8 +181,8 @@ function AppRoutes() {
     return (
       <PublicLayout onNavigate={navigate}>
         {pathname === '/' && <LandingPage onNavigate={navigate} />}
-        {pathname === '/demo' && <InvestorDemoPage />}
-        {pathname === '/demo/passport-view' && <RentalPassportSecureViewerPage />}
+        {isPublicDemoEnabled && pathname === '/demo' && <InvestorDemoPage />}
+        {isPublicDemoEnabled && pathname === '/demo/passport-view' && <RentalPassportSecureViewerPage />}
         {pathname === '/pricing' && <PricingPage onNavigate={navigate} />}
         {pathname === '/developers' && <DeveloperPortalPage onNavigate={navigate} />}
         {pathname !== '/' && pathname !== '/demo' && pathname !== '/demo/passport-view' && pathname !== '/pricing' && pathname !== '/developers' && (
@@ -499,9 +502,11 @@ function LandingPage({ onNavigate }: { onNavigate: (path: string) => void }) {
               Create Your Free Passport
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button className="px-6 py-3 text-base" onClick={() => onNavigate('/demo')}>
-              See How It Works
-            </Button>
+            {isPublicDemoEnabled && (
+              <Button className="px-6 py-3 text-base" onClick={() => onNavigate('/demo')}>
+                See How It Works
+              </Button>
+            )}
           </div>
           <div className="mt-8 flex flex-wrap gap-5 text-sm font-bold text-slate-600">
             <TrustRow label="Free to start" />

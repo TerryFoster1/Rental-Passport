@@ -117,6 +117,7 @@ export function PassportPreviewPage({ onNavigate }: { onNavigate: (path: string)
   if (state.loading) return <PassportLoading />;
   if (state.error) return <PassportError message={state.error} />;
   if (!state.summary) return <PassportEmpty />;
+  const allVerified = state.summary.sections.every((section) => section.status === 'verified' && section.verification_state === 'verified');
 
   return (
     <PageContainer>
@@ -133,10 +134,16 @@ export function PassportPreviewPage({ onNavigate }: { onNavigate: (path: string)
             <p className="mt-2 text-slate-700">Toronto, ON</p>
             <p className="mt-2 text-sm font-semibold text-slate-600">Passport ID: {state.summary.passport.passport_number}</p>
           </div>
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-            <ShieldCheck className="mx-auto h-10 w-10 text-emerald-700" />
-            <strong className="mt-2 block text-xl font-black text-emerald-800">Fully Verified</strong>
-            <p className="mt-1 text-sm text-emerald-900">Ready for landlord review with tenant consent.</p>
+          <div className={`rounded-2xl border p-5 text-center ${allVerified ? 'border-emerald-200 bg-emerald-50' : 'border-blue-200 bg-blue-50'}`}>
+            <ShieldCheck className={`mx-auto h-10 w-10 ${allVerified ? 'text-emerald-700' : 'text-blue-700'}`} />
+            <strong className={`mt-2 block text-xl font-black ${allVerified ? 'text-emerald-800' : 'text-blue-900'}`}>
+              {allVerified ? 'Verified Rental Passport' : `${state.summary.progress.overall}% Complete - Not Independently Verified`}
+            </strong>
+            <p className={`mt-1 text-sm ${allVerified ? 'text-emerald-900' : 'text-blue-900'}`}>
+              {allVerified
+                ? 'Ready for landlord review with tenant consent.'
+                : 'Landlords can review provided information, but verification must be requested separately.'}
+            </p>
           </div>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">

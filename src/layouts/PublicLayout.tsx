@@ -1,5 +1,6 @@
 import { RentalPassportLogo } from '@/components/brand/RentalPassportLogo';
 import { Button } from '@/components/ui/Button';
+import { isPublicDemoEnabled } from '@/lib/env';
 
 export function PublicLayout({
   children,
@@ -23,13 +24,15 @@ export function PublicLayout({
             >
               Pricing
             </Button>
-            <Button
-              variant="ghost"
-              className="hidden md:inline-flex"
-              onClick={() => onNavigate('/demo')}
-            >
-              Demo
-            </Button>
+            {isPublicDemoEnabled && (
+              <Button
+                variant="ghost"
+                className="hidden md:inline-flex"
+                onClick={() => onNavigate('/demo')}
+              >
+                Demo
+              </Button>
+            )}
             <Button variant="ghost" onClick={() => onNavigate('/sign-in')}>
               Sign In
             </Button>

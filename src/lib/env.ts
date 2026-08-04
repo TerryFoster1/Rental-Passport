@@ -10,3 +10,4 @@ export const env = {
 
 export const isSupabaseConfigured = Boolean(env.supabaseUrl && env.supabaseAnonKey);
 export const isProduction = env.appEnv === 'production';
+export const isPublicDemoEnabled = !isProduction || env.partnerViewerDemoEnabled || env.postApplicationDemoEnabled;

@@ -9,7 +9,7 @@ export function PassportProgressCard({ progress }: { progress: PassportSummary['
         <div>
           <p className="text-sm font-black uppercase text-blue-700">Passport Completeness</p>
           <h2 className="mt-2 text-3xl font-black">Your passport is {progress.overall}% complete</h2>
-          <p className="mt-2 max-w-2xl text-slate-700">Completeness only measures whether your passport sections are filled out and verified. It is not a tenant score.</p>
+          <p className="mt-2 max-w-2xl text-slate-700">Completeness only measures whether your passport sections are filled out. Verification is tracked separately and is not a tenant score.</p>
         </div>
         <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-8 border-blue-100 text-2xl font-black text-blue-700">{progress.overall}%</div>
       </div>
