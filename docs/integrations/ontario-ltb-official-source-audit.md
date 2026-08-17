@@ -1,6 +1,6 @@
 # Ontario LTB Official Source Audit
 
-Date: 2026-08-03  
+Date: 2026-08-17  
 Status: official source located; manual-review MVP recommended before automated ingestion.
 
 ## Official Source Located
@@ -17,7 +17,7 @@ Status: official source located; manual-review MVP recommended before automated 
 
 ## Publisher Description
 
-The catalogue currently contains copies of final orders issued by the Landlord and Tenant Board between January 2026 and May 2026. Orders after May 2026 are expected to be published 2 to 3 months after issue. Historical orders dating back to 2021 are expected to be published in phases. Orders subject to confidentiality orders are excluded.
+Tribunals Ontario states that the catalogue contains final LTB orders since December 2021, except orders subject to confidentiality orders made by an LTB adjudicator. The specific resource inspected during implementation covered January 2026 through May 2026. Orders after May 2026 are expected to be published 2 to 3 months after issue, and historical/resource coverage should be verified at each search.
 
 ## Access Method
 
@@ -62,7 +62,8 @@ The CSV does not provide a complete structured disposition model. Document type,
 
 ## Coverage and Cadence
 
-- Current coverage inspected: January 2026 to May 2026 final orders.
+- Official programme coverage stated by Tribunals Ontario: final LTB orders since December 2021, excluding confidential orders.
+- Specific CSV resource coverage inspected for the implementation fixture: January 2026 to May 2026 final orders.
 - Future cadence stated in metadata: orders are published 2 to 3 months after issue.
 - Historical coverage: orders dating back to 2021 will be published in phases.
 - Confidential orders: excluded when subject to confidentiality order made by an LTB adjudicator.
@@ -95,4 +96,3 @@ Use a founder/manual-review MVP first.
 Rental Passport may accept a consented request, search the official catalogue, review CSV candidates and linked official PDFs, normalize facts, record match reasons, give the applicant a review/dispute path, and return a safe normalized result to Rental District.
 
 Do not implement an unattended scraper or automated final decision engine yet.
-

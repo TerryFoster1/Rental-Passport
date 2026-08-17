@@ -12,22 +12,23 @@ Current test file:
 Covered cases:
 
 - consent required before search.
+- organization/application authorization.
 - name-only match cannot auto-confirm.
 - tenant versus landlord role is distinguished.
 - no-match coverage disclaimer includes limitations.
 - ambiguous matches require review.
 - mismatched address rejects false match.
 - applicant dispute pauses partner release.
+- amended/replaced order updates status without deleting history.
 - expired result maps to recheck status.
 - source unavailable fails transparently.
 - private reviewer notes are not returned to Rental District.
 - no risk score or recommendation is returned.
+- audit event created for search/review actions.
+- cross-organization access denied.
 
 ## Required Future Integration Tests
 
-- organization/application authorization.
-- audit event created for every search and review.
-- cross-organization access denied.
 - official CSV download failure handled as `source_unavailable`.
 - malformed CSV row quarantined for manual review.
 - PDF link extraction preserves official source URL.
@@ -44,4 +45,3 @@ Covered cases:
 - reviewer can mark source coverage incomplete.
 - reviewer can record appeal/review/stay indicators from the PDF.
 - applicant can dispute before release where feasible.
-

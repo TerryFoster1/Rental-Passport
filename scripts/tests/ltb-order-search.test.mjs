@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   assessOntarioLtbOrderMatch,
+  authorizeOntarioLtbSearchRequest,
   canReleaseOntarioLtbResultToPartner,
+  createOntarioLtbAuditEvent,
   createOntarioLtbCoverageStatement,
   getOntarioLtbSearchReadiness,
+  reviseOntarioLtbResultForSourceUpdate,
   toRentalDistrictLtbVerificationPayload,
 } from '../../src/services/ltbOrderSearchService.ts';
 
@@ -46,6 +49,30 @@ const baseRecord = {
   confidentialityState: 'published_redacted',
 };
 
+const consent = {
+  consentId: 'consent_ltb_1',
+  consentVersion: 'ltb-order-search-v1',
+  consentedAt: '2026-08-03T11:00:00Z',
+  applicationId: 'rd_application_1',
+  passportId: 'passport_1',
+  applicantUserId: 'applicant_1',
+  applicantLegalName: 'Kathryn Casey',
+  purpose: 'official_ontario_ltb_order_search',
+  requestingOrganizationId: 'rd_org_1',
+  sourceCoverage: coverage,
+  expiresAt: '2026-09-03T11:00:00Z',
+};
+
+const request = {
+  requestId: 'request_1',
+  type: 'ontario_ltb_order_search',
+  applicationId: 'rd_application_1',
+  passportId: 'passport_1',
+  applicantUserId: 'applicant_1',
+  requestingOrganizationId: 'rd_org_1',
+  consentId: 'consent_ltb_1',
+};
+
 function result(overrides = {}) {
   return {
     id: 'ltb_result_1',
@@ -73,6 +100,21 @@ function result(overrides = {}) {
 describe('Ontario LTB order search model', () => {
   it('requires consent before search', () => {
     assert.equal(getOntarioLtbSearchReadiness(null), 'consent_required');
+  });
+
+  it('authorizes only application-scoped consent before search', () => {
+    assert.equal(authorizeOntarioLtbSearchRequest(request, consent, new Date('2026-08-04T00:00:00Z')).authorized, true);
+    assert.deepEqual(
+      authorizeOntarioLtbSearchRequest({ ...request, applicationId: 'other_application' }, consent, new Date('2026-08-04T00:00:00Z')),
+      { authorized: false, reason: 'application_scope_mismatch' },
+    );
+  });
+
+  it('denies cross-organization access', () => {
+    assert.deepEqual(
+      authorizeOntarioLtbSearchRequest({ ...request, requestingOrganizationId: 'other_org' }, consent, new Date('2026-08-04T00:00:00Z')),
+      { authorized: false, reason: 'organization_scope_mismatch' },
+    );
   });
 
   it('does not confirm a name-only match', () => {
@@ -119,6 +161,21 @@ describe('Ontario LTB order search model', () => {
     assert.equal(payload.status, 'expired');
   });
 
+  it('updates amended or replaced order status without deleting history', () => {
+    const original = result();
+    const revision = reviseOntarioLtbResultForSourceUpdate(original, {
+      revisionType: 'replaced',
+      sourceRecord: { ...baseRecord, documentId: 'DOC-REPLACEMENT', contentDownloadUrl: 'https://example.test/replacement.pdf' },
+      reviewerUserId: 'reviewer_2',
+      reviewedAt: '2026-08-04T12:00:00Z',
+      summary: 'Official source indicates this order was replaced. Previous result is preserved for audit history.',
+    });
+    assert.equal(original.sourceRecord.documentId, 'DOC-123');
+    assert.equal(revision.capabilityState, 'corrected');
+    assert.ok(revision.amendmentReviewStayAppealIndicators.includes('replaced'));
+    assert.match(revision.supersededOrReplacedStatus, /Previous result preserved/);
+  });
+
   it('fails transparently when source is unavailable', () => {
     const payload = toRentalDistrictLtbVerificationPayload(result({ capabilityState: 'source_unavailable', sourceRecord: null, match: null }), '2026-09-03');
     assert.equal(payload.status, 'unavailable');
@@ -130,5 +187,18 @@ describe('Ontario LTB order search model', () => {
     assert.equal('internalReviewerNotes' in payload, false);
     assert.equal('risk_score' in payload, false);
     assert.equal('recommendation' in payload, false);
+  });
+
+  it('creates an audit event for every search and review action', () => {
+    const event = createOntarioLtbAuditEvent({
+      eventType: 'ltb_search_executed',
+      request,
+      actorId: 'reviewer_1',
+      metadata: { sourceCoverageEnd: coverage.coverageEnd },
+      createdAt: '2026-08-04T12:00:00Z',
+    });
+    assert.equal(event.applicationId, request.applicationId);
+    assert.equal(event.requestingOrganizationId, request.requestingOrganizationId);
+    assert.equal(event.metadata.sourceCoverageEnd, coverage.coverageEnd);
   });
 });

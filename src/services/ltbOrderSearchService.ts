@@ -1,11 +1,15 @@
 import type {
   OntarioLtbApplicantMatchInput,
   OntarioLtbApplicantRole,
+  OntarioLtbAuditEvent,
+  OntarioLtbAuthorizationResult,
   OntarioLtbConsentRecord,
   OntarioLtbMatchAssessment,
   OntarioLtbMatchReasonCode,
   OntarioLtbNormalizedOrderResult,
   OntarioLtbOrderSearchCapabilityState,
+  OntarioLtbResultRevisionInput,
+  OntarioLtbSearchRequest,
   OntarioLtbSourceCoverage,
   OntarioLtbSourceRecord,
   RentalDistrictLtbVerificationPayload,
@@ -37,6 +41,22 @@ export function getOntarioLtbSearchReadiness(consent: OntarioLtbConsentRecord | 
   if (!consent) return 'consent_required';
   if (new Date(consent.expiresAt).getTime() <= now.getTime()) return 'expired';
   return 'queued';
+}
+
+export function authorizeOntarioLtbSearchRequest(
+  request: OntarioLtbSearchRequest,
+  consent: OntarioLtbConsentRecord | null,
+  now = new Date(),
+): OntarioLtbAuthorizationResult {
+  if (!consent) return { authorized: false, reason: 'missing_consent' };
+  if (new Date(consent.expiresAt).getTime() <= now.getTime()) return { authorized: false, reason: 'consent_expired' };
+  if (consent.purpose !== 'official_ontario_ltb_order_search') return { authorized: false, reason: 'consent_wrong_purpose' };
+  if (request.consentId !== consent.consentId) return { authorized: false, reason: 'consent_reference_mismatch' };
+  if (request.applicationId !== consent.applicationId) return { authorized: false, reason: 'application_scope_mismatch' };
+  if (request.passportId !== consent.passportId) return { authorized: false, reason: 'passport_scope_mismatch' };
+  if (request.applicantUserId !== consent.applicantUserId) return { authorized: false, reason: 'applicant_scope_mismatch' };
+  if (request.requestingOrganizationId !== consent.requestingOrganizationId) return { authorized: false, reason: 'organization_scope_mismatch' };
+  return { authorized: true, reason: 'authorized' };
 }
 
 export function createOntarioLtbCoverageStatement(coverage: OntarioLtbSourceCoverage, checkedAt = coverage.retrievedAt): string {
@@ -162,6 +182,51 @@ export function canReleaseOntarioLtbResultToPartner(result: OntarioLtbNormalized
   if (result.disputeState === 'applicant_disputed' || result.disputeState === 'correction_requested' || result.disputeState === 'under_manual_review') return false;
   if (result.capabilityState === 'manual_review_required' || result.capabilityState === 'possible_match') return false;
   return result.capabilityState === 'no_match_found' || result.capabilityState === 'match_confirmed' || result.capabilityState === 'match_rejected' || result.capabilityState === 'corrected';
+}
+
+export function reviseOntarioLtbResultForSourceUpdate(
+  result: OntarioLtbNormalizedOrderResult,
+  revision: OntarioLtbResultRevisionInput,
+): OntarioLtbNormalizedOrderResult {
+  return {
+    ...result,
+    id: `${result.id}:revision:${revision.revisionType}:${revision.sourceRecord.documentId}`,
+    capabilityState: 'corrected',
+    sourceRecord: revision.sourceRecord,
+    shortFactualSummary: revision.summary,
+    amendmentReviewStayAppealIndicators: [
+      ...result.amendmentReviewStayAppealIndicators,
+      revision.revisionType,
+    ],
+    supersededOrReplacedStatus:
+      revision.revisionType === 'replaced'
+        ? `Replaced by official source document ${revision.sourceRecord.documentId}. Previous result preserved as ${result.id}.`
+        : result.supersededOrReplacedStatus,
+    reviewerUserId: revision.reviewerUserId,
+    reviewedAt: revision.reviewedAt,
+    disputeState: revision.revisionType === 'corrected' ? 'corrected' : result.disputeState,
+  };
+}
+
+export function createOntarioLtbAuditEvent(input: {
+  eventType: OntarioLtbAuditEvent['eventType'];
+  request: OntarioLtbSearchRequest;
+  actorId: string | null;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+}): OntarioLtbAuditEvent {
+  return {
+    id: `ltb_audit_${input.request.requestId}_${input.eventType}`,
+    eventType: input.eventType,
+    applicationId: input.request.applicationId,
+    passportId: input.request.passportId,
+    applicantUserId: input.request.applicantUserId,
+    requestingOrganizationId: input.request.requestingOrganizationId,
+    consentId: input.request.consentId,
+    actorId: input.actorId,
+    metadata: input.metadata ?? {},
+    createdAt: input.createdAt ?? new Date().toISOString(),
+  };
 }
 
 function toRentalDistrictStatus(result: OntarioLtbNormalizedOrderResult): RentalDistrictLtbVerificationStatus {
